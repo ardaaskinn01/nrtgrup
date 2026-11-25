@@ -32,16 +32,12 @@ void main() async {
 
   // Firebase Başlatma
   try {
-    if (DefaultFirebaseOptions.areOptionsConfigured) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } else {
-      await Firebase.initializeApp();
-    }
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     debugPrint('Firebase başarıyla başlatıldı.');
   } catch (e) {
-    debugPrint('Firebase başlatma uyarısı (Yapılandırma bekleniyor): $e');
+    debugPrint('Firebase başlatma uyarısı: $e');
   }
 
   // Supabase Başlatma (Storage için)

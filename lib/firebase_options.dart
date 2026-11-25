@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart'
 /// eklendiğinde Firebase.initializeApp() doğrudan bu dosyaları okuyabilir.
 class DefaultFirebaseOptions {
   static bool get areOptionsConfigured => _isConfigured;
-  static const bool _isConfigured = false; // FlutterFire configure çalıştırılınca true yapılır
+  static const bool _isConfigured = true;
 
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
