@@ -122,38 +122,17 @@ class DashboardScreen extends ConsumerWidget {
                             style: TextStyle(color: Colors.white70, fontSize: 13),
                           ),
                           Text(
-                            user?.email ?? 'Yönetici',
+                            user?.email != null
+                                ? (user!.email!.contains('@')
+                                    ? user.email!.split('@').first
+                                    : user.email!)
+                                : 'Kullanıcı',
                             style: const TextStyle(
                               color: AppTheme.pureWhite,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                             overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.primaryOrange.withValues(alpha: 0.6),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle, color: AppTheme.primaryOrangeLight, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Sonsuz Oturum',
-                            style: TextStyle(
-                              color: AppTheme.pureWhite,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
                           ),
                         ],
                       ),

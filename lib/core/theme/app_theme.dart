@@ -141,6 +141,37 @@ class AppTheme {
         side: const BorderSide(color: lightBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          textStyle: WidgetStateProperty.all(GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return primaryOrangeDark;
+            }
+            return lightTextPrimary;
+          }),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return primaryOrange.withValues(alpha: 0.16);
+            }
+            return lightInputFill;
+          }),
+          side: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const BorderSide(color: primaryOrange, width: 1.5);
+            }
+            return const BorderSide(color: lightBorder);
+          }),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: pureWhite,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: pureWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+      ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryOrange,
         foregroundColor: pureWhite,
@@ -273,6 +304,37 @@ class AppTheme {
         labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: darkTextPrimary),
         side: const BorderSide(color: darkBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          textStyle: WidgetStateProperty.all(GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return primaryOrangeLight;
+            }
+            return darkTextPrimary;
+          }),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return primaryOrange.withValues(alpha: 0.22);
+            }
+            return darkSurfaceElevated;
+          }),
+          side: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const BorderSide(color: primaryOrange, width: 1.5);
+            }
+            return const BorderSide(color: darkBorder);
+          }),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: darkSurface,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: darkSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryOrange,

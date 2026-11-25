@@ -150,12 +150,17 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: isPhotoTab
-                ? _showPhotoSourceSheet
-                : () => AddNoteModal.show(context, customerId: widget.customerId),
-            icon: Icon(isPhotoTab ? Icons.add_a_photo_outlined : Icons.note_add_outlined),
-            label: Text(isPhotoTab ? 'İş Fotoğrafı Ekle' : 'Not Ekle'),
+          floatingActionButton: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0, right: 4.0),
+              child: FloatingActionButton.extended(
+                onPressed: isPhotoTab
+                    ? _showPhotoSourceSheet
+                    : () => AddNoteModal.show(context, customerId: widget.customerId),
+                icon: Icon(isPhotoTab ? Icons.add_a_photo_outlined : Icons.note_add_outlined),
+                label: Text(isPhotoTab ? 'İş Fotoğrafı Ekle' : 'Not Ekle'),
+              ),
+            ),
           ),
           body: Column(
             children: [

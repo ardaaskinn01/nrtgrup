@@ -167,12 +167,16 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
       categories.add(_selectedCategory);
     }
 
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom > 0
+        ? MediaQuery.of(context).viewInsets.bottom + 20
+        : MediaQuery.of(context).viewPadding.bottom + 24;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: bottomPadding,
       ),
       child: SingleChildScrollView(
         child: Form(
@@ -219,18 +223,32 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
                 onSelectionChanged: (sel) => _onTypeChanged(sel.first),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith((states) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
                     if (states.contains(WidgetState.selected)) {
                       return _selectedType == TransactionType.income
-                          ? AppTheme.successColor.withValues(alpha: 0.18)
-                          : AppTheme.errorColor.withValues(alpha: 0.18);
+                          ? (isDark ? const Color(0xFF1B3D2F) : const Color(0xFFDCFCE7))
+                          : (isDark ? const Color(0xFF451A1A) : const Color(0xFFFEE2E2));
                     }
                     return null;
                   }),
                   foregroundColor: WidgetStateProperty.resolveWith((states) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
                     if (states.contains(WidgetState.selected)) {
                       return _selectedType == TransactionType.income
-                          ? AppTheme.successColor
-                          : AppTheme.errorColor;
+                          ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
+                          : (isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C));
+                    }
+                    return null;
+                  }),
+                  side: WidgetStateProperty.resolveWith((states) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    if (states.contains(WidgetState.selected)) {
+                      return BorderSide(
+                        color: _selectedType == TransactionType.income
+                            ? (isDark ? const Color(0xFF22C55E) : const Color(0xFF16A34A))
+                            : (isDark ? const Color(0xFFEF4444) : const Color(0xFFDC2626)),
+                        width: 1.5,
+                      );
                     }
                     return null;
                   }),

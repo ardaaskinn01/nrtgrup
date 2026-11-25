@@ -98,7 +98,11 @@ class SideMenu extends ConsumerWidget {
                             ),
                           ),
                           child: Text(
-                            user?.email ?? 'Oturum Açık',
+                            user?.email != null
+                                ? (user!.email!.contains('@')
+                                    ? user.email!.split('@').first
+                                    : user.email!)
+                                : 'Oturum Açık',
                             style: const TextStyle(
                               color: AppTheme.primaryOrangeLight,
                               fontSize: 11,
@@ -155,75 +159,6 @@ class SideMenu extends ConsumerWidget {
                     isActive: currentLocation == AppConstants.personelRoute,
                     onTap: () => _navigate(context, AppConstants.personelRoute),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Divider(),
-                  ),
-                  _MenuItem(
-                    icon: Icons.settings_outlined,
-                    title: 'Ayarlar',
-                    isActive: currentLocation == AppConstants.ayarlarRoute,
-                    onTap: () => _navigate(context, AppConstants.ayarlarRoute),
-                  ),
-                ],
-              ),
-            ),
-
-            // Drawer En Alt: Sponsor Alanı (drawerlogo.jpg)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkSurfaceElevated : AppTheme.lightInputFill,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.verified,
-                        size: 14,
-                        color: AppTheme.primaryOrange,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'ÇÖZÜM ORTAĞI & SPONSOR',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          color: AppTheme.primaryOrange,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      AppConstants.drawerLogo,
-                      height: 58,
-                      width: double.infinity,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 58,
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Sponsor Logo',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? Colors.white54 : Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -257,7 +192,7 @@ class SideMenu extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Çıkış Yap'),
         content: const Text(
-          'Oturumunuz bu cihazda sonsuz olarak açık tutulmaktadır. Şimdi çıkış yapmak istediğinize emin misiniz?',
+          'Çıkış yapmak istediğinize emin misiniz?',
         ),
         actions: [
           TextButton(

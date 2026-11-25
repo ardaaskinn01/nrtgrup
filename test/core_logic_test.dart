@@ -92,18 +92,18 @@ void main() {
       expect(res.label, 'N. Tutak Mutlu');
     });
 
-    test('Gelir == 50.000 TL (tam sınır) için mutlu.jpeg ve N. Tutak Mutlu döner', () {
+    test('Gelir == 50.000 TL (tam sınır) için mutlu.jpeg ve N. Tutak Çok Mutlu döner', () {
       final res = MoodBurst.resolve(amount: 50000.0, isIncome: true);
       expect(res.type, MoodType.happy);
       expect(res.assetPath, AppConstants.iconMutlu);
-      expect(res.label, 'N. Tutak Mutlu');
+      expect(res.label, 'N. Tutak Çok Mutlu');
     });
 
-    test('Gelir > 50.000 TL için mutlu.jpeg ve N. Tutak Mutlu döner', () {
+    test('Gelir > 50.000 TL için mutlu.jpeg ve N. Tutak Çok Mutlu döner', () {
       final res = MoodBurst.resolve(amount: 120000.0, isIncome: true);
       expect(res.type, MoodType.happy);
       expect(res.assetPath, AppConstants.iconMutlu);
-      expect(res.label, 'N. Tutak Mutlu');
+      expect(res.label, 'N. Tutak Çok Mutlu');
     });
 
     test('Her gider işlemi tutardan bağımsız mutsuz.jpeg ve N. Tutak Mutsuz döner', () {

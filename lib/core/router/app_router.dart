@@ -12,7 +12,6 @@ import '../../features/debts/screens/debt_detail_screen.dart';
 import '../../features/debts/screens/debts_list_screen.dart';
 import '../../features/receivables/screens/receivable_detail_screen.dart';
 import '../../features/receivables/screens/receivables_list_screen.dart';
-import '../../features/settings/screens/settings_screen.dart';
 import '../../features/staff/screens/staff_detail_screen.dart';
 import '../../features/staff/screens/staff_list_screen.dart';
 import '../../features/transactions/screens/gelir_gider_screen.dart';
@@ -96,10 +95,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id']!;
               return StaffDetailScreen(staffId: id);
             },
-          ),
-          GoRoute(
-            path: AppConstants.ayarlarRoute,
-            builder: (context, state) => const SettingsScreen(),
           ),
         ],
       ),

@@ -2,7 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConstants {
   // App Info
-  static const String appName = 'İş & Muhasebe Takip';
+  static const String appName = 'Nrt Grup';
   static const String appVersion = '1.0.0';
 
   // Default Admin User

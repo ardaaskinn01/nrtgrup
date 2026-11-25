@@ -80,7 +80,7 @@ class CustomerListScreen extends ConsumerWidget {
                       customer: customer,
                       onTap: () {
                         if (customer.id != null) {
-                          context.go('${AppConstants.musterilerRoute}/${customer.id}');
+                          context.push('${AppConstants.musterilerRoute}/${customer.id}');
                         }
                       },
                       onEdit: () => AddCustomerModal.show(context, initialCustomer: customer),

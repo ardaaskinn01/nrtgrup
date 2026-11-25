@@ -15,7 +15,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController(text: 'yönetici');
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -162,9 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         labelText: 'Kullanıcı Adı',
-                        hintText: 'Örn: yönetici',
                         prefixIcon: Icon(Icons.person_outline),
-                        helperText: '@example.com otomatik olarak eklenecektir',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -228,39 +226,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ],
                             ),
                     ).animate().fadeIn(delay: 550.ms).slideY(begin: 0.1, end: 0),
-
-                    const SizedBox(height: 24),
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryOrange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppTheme.primaryOrange.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.all_inclusive,
-                            size: 20,
-                            color: AppTheme.primaryOrange,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Oturumunuz bu cihazda siz çıkış yapana kadar kalıcı ve sonsuz olarak açık tutulur.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
-                                height: 1.3,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 650.ms),
                   ],
                 ),
               ),

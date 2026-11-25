@@ -112,12 +112,16 @@ class _AddNoteModalState extends ConsumerState<AddNoteModal> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom > 0
+        ? MediaQuery.of(context).viewInsets.bottom + 20
+        : MediaQuery.of(context).viewPadding.bottom + 24;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: bottomPadding,
       ),
       child: SingleChildScrollView(
         child: Form(

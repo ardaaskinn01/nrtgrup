@@ -81,7 +81,7 @@ class StaffListScreen extends ConsumerWidget {
                       staff: staff,
                       onTap: () {
                         if (staff.id != null) {
-                          context.go('${AppConstants.personelRoute}/${staff.id}');
+                          context.push('${AppConstants.personelRoute}/${staff.id}');
                         }
                       },
                       onEdit: () => AddStaffModal.show(context, initialStaff: staff),

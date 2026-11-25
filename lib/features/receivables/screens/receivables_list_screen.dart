@@ -144,7 +144,7 @@ class ReceivablesListScreen extends ConsumerWidget {
                       child: ListTile(
                         onTap: () {
                           if (person.id != null) {
-                            context.go('${AppConstants.alacaklarRoute}/${person.id}');
+                            context.push('${AppConstants.alacaklarRoute}/${person.id}');
                           }
                         },
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

@@ -43,7 +43,7 @@ class MoodBurst {
       return const MoodBurstResult(
         type: MoodType.happy,
         assetPath: AppConstants.iconMutlu,
-        label: 'N. Tutak Mutlu',
+        label: 'N. Tutak Çok Mutlu',
       );
     }
     return const MoodBurstResult(

@@ -136,7 +136,7 @@ class DebtsListScreen extends ConsumerWidget {
                       child: ListTile(
                         onTap: () {
                           if (person.id != null) {
-                            context.go('${AppConstants.borclarRoute}/${person.id}');
+                            context.push('${AppConstants.borclarRoute}/${person.id}');
                           }
                         },
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
