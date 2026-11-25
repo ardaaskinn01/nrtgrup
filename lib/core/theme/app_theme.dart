@@ -77,10 +77,11 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: lightBorder, width: 1),
+          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.2),
         ),
         color: pureWhite,
         surfaceTintColor: Colors.transparent,
+        margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -241,10 +242,11 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: darkBorder, width: 1),
+          side: const BorderSide(color: Color(0xFF2A2A2A), width: 1.2),
         ),
-        color: darkSurface,
+        color: darkSurfaceElevated,
         surfaceTintColor: Colors.transparent,
+        margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

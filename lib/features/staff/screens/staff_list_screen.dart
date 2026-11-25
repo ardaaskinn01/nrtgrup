@@ -140,14 +140,40 @@ class _StaffCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A1A1A) : AppTheme.pureWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFE5E7EB),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        leading: CircleAvatar(
-          radius: 22,
-          backgroundColor: AppTheme.primaryOrange.withValues(alpha: 0.16),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryOrange.withValues(alpha: isDark ? 0.22 : 0.12),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: AppTheme.primaryOrange.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
+          alignment: Alignment.center,
           child: Text(
             staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'P',
             style: const TextStyle(
@@ -171,18 +197,21 @@ class _StaffCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppTheme.primaryOrange.withValues(alpha: 0.15),
+                color: isDark
+                    ? AppTheme.primaryOrange.withValues(alpha: 0.2)
+                    : AppTheme.primaryOrange.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.4),
+                  color: AppTheme.primaryOrange.withValues(alpha: 0.35),
+                  width: 1,
                 ),
               ),
               child: Text(
                 staff.paymentType.displayName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.primaryOrange,
+                  color: isDark ? AppTheme.primaryOrangeLight : AppTheme.primaryOrangeDark,
                 ),
               ),
             ),
@@ -195,19 +224,41 @@ class _StaffCard extends StatelessWidget {
               Text(
                 AppFormatters.formatCurrency(staff.wage),
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   fontSize: 13,
-                  color: theme.textTheme.bodyLarge?.color,
+                  color: isDark ? AppTheme.pureWhite : AppTheme.pureBlack,
+                ),
+              ),
+              Text(
+                ' / ${staff.paymentType.displayName.toLowerCase()}',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
                 ),
               ),
               if (staff.phone.isNotEmpty) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    '• ${staff.phone}',
-                    style: theme.textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.phone_outlined,
+                        size: 13,
+                        color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          staff.phone,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

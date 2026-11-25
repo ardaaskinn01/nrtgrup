@@ -342,31 +342,63 @@ class _MiniSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : AppTheme.pureWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE5E7EB),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: color,
                 ),
               ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppTheme.lightTextSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: color,
+                letterSpacing: -0.3,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -387,26 +419,47 @@ class _TransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIncome = transaction.isIncome;
     final color = isIncome ? AppTheme.successColor : AppTheme.errorColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A1A1A) : AppTheme.pureWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFE5E7EB),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         leading: Container(
-          width: 42,
-          height: 42,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(12),
+            color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: color.withValues(alpha: 0.35),
+              width: 1,
+            ),
           ),
           child: Icon(
             isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
             color: color,
+            size: 22,
           ),
         ),
         title: Text(
           transaction.description.isNotEmpty ? transaction.description : transaction.category,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -414,7 +467,10 @@ class _TransactionCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             '${AppFormatters.formatDate(transaction.date)} • ${transaction.category} • ${transaction.paymentMethod.displayName}',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: TextStyle(
+              fontSize: 11.5,
+              color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -422,12 +478,20 @@ class _TransactionCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${isIncome ? '+' : '-'}${AppFormatters.formatCurrency(transaction.amount)}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: color,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: isDark ? 0.16 : 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${isIncome ? '+' : '-'}${AppFormatters.formatCurrency(transaction.amount)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13.5,
+                  color: color,
+                  letterSpacing: -0.2,
+                ),
               ),
             ),
             PopupMenuButton<String>(
