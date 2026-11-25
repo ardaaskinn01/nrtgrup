@@ -7,6 +7,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
 import '../../../models/staff.dart';
@@ -21,6 +22,7 @@ class StaffListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.of(context).size.width > 900;
     final staffAsync = ref.watch(filteredStaffProvider);
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
       drawer: isDesktop ? null : const Drawer(child: SideMenu(isDrawer: true)),
@@ -30,7 +32,7 @@ class StaffListScreen extends ConsumerWidget {
             ? null
             : Builder(
                 builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(Icons.menu_rounded),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -46,13 +48,10 @@ class StaffListScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            child: SearchFieldBar(
+              hintText: 'Personel ara (isim, telefon, ödeme tipi)...',
               onChanged: (val) => ref.read(staffSearchQueryProvider.notifier).state = val,
-              decoration: const InputDecoration(
-                hintText: 'Personel ara (isim, telefon, ödeme tipi)...',
-                prefixIcon: Icon(Icons.search),
-              ),
             ),
           ),
           Expanded(
@@ -73,7 +72,7 @@ class StaffListScreen extends ConsumerWidget {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                  padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 96),
                   itemCount: staffList.length,
                   itemBuilder: (context, index) {
                     final staff = staffList[index];
@@ -140,111 +139,66 @@ class _StaffCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final orange = AdaptiveColors.orange(context);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : AppTheme.pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFE5E7EB),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    return SurfaceCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 8, 12),
+      leftAccentColor: orange,
+      onTap: onTap,
+      child: Row(
+        children: [
+          IconSquircle(
+            color: orange,
+            text: staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'P',
+            size: 46,
           ),
-        ],
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryOrange.withValues(alpha: isDark ? 0.22 : 0.12),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: AppTheme.primaryOrange.withValues(alpha: 0.35),
-              width: 1,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'P',
-            style: const TextStyle(
-              color: AppTheme.primaryOrange,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                staff.fullName,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppTheme.primaryOrange.withValues(alpha: 0.2)
-                    : AppTheme.primaryOrange.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.35),
-                  width: 1,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        staff.fullName,
+                        style: theme.textTheme.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusPill(
+                      label: staff.paymentType.displayName,
+                      color: orange,
+                    ),
+                  ],
                 ),
-              ),
-              child: Text(
-                staff.paymentType.displayName,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppTheme.primaryOrangeLight : AppTheme.primaryOrangeDark,
-                ),
-              ),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Row(
-            children: [
-              Text(
-                AppFormatters.formatCurrency(staff.wage),
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: isDark ? AppTheme.pureWhite : AppTheme.pureBlack,
-                ),
-              ),
-              Text(
-                ' / ${staff.paymentType.displayName.toLowerCase()}',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-                ),
-              ),
-              if (staff.phone.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    children: [
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(
+                      AppFormatters.formatCurrency(staff.wage),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13.5,
+                        color: theme.textTheme.titleMedium?.color,
+                      ),
+                    ),
+                    Text(
+                      ' / ${staff.paymentType.displayName.toLowerCase()}',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AdaptiveColors.subText(context),
+                      ),
+                    ),
+                    if (staff.phone.isNotEmpty) ...[
+                      const SizedBox(width: 10),
                       Icon(
                         Icons.phone_outlined,
                         size: 13,
-                        color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+                        color: AdaptiveColors.subText(context),
                       ),
                       const SizedBox(width: 3),
                       Expanded(
@@ -252,47 +206,52 @@ class _StaffCard extends StatelessWidget {
                           staff.phone,
                           style: TextStyle(
                             fontSize: 11.5,
-                            color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
+                            color: AdaptiveColors.subText(context),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert_rounded,
+              size: 20,
+              color: AdaptiveColors.subText(context),
+            ),
+            onSelected: (val) {
+              if (val == 'edit') onEdit();
+              if (val == 'delete') onDelete();
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 8),
+                    Text('Düzenle'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
+                    SizedBox(width: 8),
+                    Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (val) {
-            if (val == 'edit') onEdit();
-            if (val == 'delete') onDelete();
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Düzenle'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
-                  SizedBox(width: 8),
-                  Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
-                ],
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

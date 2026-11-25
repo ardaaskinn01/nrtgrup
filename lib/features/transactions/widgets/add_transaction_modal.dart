@@ -263,12 +263,22 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
               // Kategori Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
+                dropdownColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkSurfaceElevated
+                    : AppTheme.pureWhite,
+                style: Theme.of(context).textTheme.bodyLarge,
                 decoration: const InputDecoration(
                   labelText: 'Kategori',
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
                 items: categories
-                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                    .map((cat) => DropdownMenuItem(
+                          value: cat,
+                          child: Text(
+                            cat,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedCategory = val);
@@ -279,12 +289,22 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
               // Ödeme Yöntemi
               DropdownButtonFormField<PaymentMethod>(
                 value: _selectedPaymentMethod,
+                dropdownColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkSurfaceElevated
+                    : AppTheme.pureWhite,
+                style: Theme.of(context).textTheme.bodyLarge,
                 decoration: const InputDecoration(
                   labelText: 'Ödeme Yöntemi',
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
                 items: PaymentMethod.values
-                    .map((m) => DropdownMenuItem(value: m, child: Text(m.displayName)))
+                    .map((m) => DropdownMenuItem(
+                          value: m,
+                          child: Text(
+                            m.displayName,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedPaymentMethod = val);

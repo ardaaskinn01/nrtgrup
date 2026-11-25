@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/mood_burst.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
@@ -23,6 +24,7 @@ class GelirGiderScreen extends ConsumerWidget {
     final period = ref.watch(transactionPeriodProvider);
     final selectedDate = ref.watch(transactionSelectedDateProvider);
     final typeFilter = ref.watch(transactionTypeFilterProvider);
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
       drawer: isDesktop ? null : const Drawer(child: SideMenu(isDrawer: true)),
@@ -32,7 +34,7 @@ class GelirGiderScreen extends ConsumerWidget {
             ? null
             : Builder(
                 builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(Icons.menu_rounded),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -62,12 +64,11 @@ class GelirGiderScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               border: Border(
-                bottom: BorderSide(color: Theme.of(context).dividerColor),
+                bottom: BorderSide(color: AdaptiveColors.cardBorder(context)),
               ),
             ),
             child: Column(
               children: [
-                // Dönem Seçimi
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SegmentedButton<TransactionFilterPeriod>(
@@ -91,33 +92,34 @@ class GelirGiderScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.chevron_left),
+                        icon: const Icon(Icons.chevron_left_rounded),
                         onPressed: () => _shiftDate(ref, period, selectedDate, -1),
                       ),
                       InkWell(
                         onTap: () => _pickDate(context, ref, selectedDate),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                            borderRadius: BorderRadius.circular(10),
+                            color: AdaptiveColors.cardBg(context),
+                            border: Border.all(color: AdaptiveColors.cardBorder(context)),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.calendar_today_outlined, size: 16, color: AppTheme.primaryOrange),
+                              const Icon(Icons.calendar_today_outlined, size: 15, color: AppTheme.primaryOrange),
                               const SizedBox(width: 8),
                               Text(
                                 _formatPeriodLabel(period, selectedDate),
-                                style: const TextStyle(fontWeight: FontWeight.w600),
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
                             ],
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.chevron_right),
+                        icon: const Icon(Icons.chevron_right_rounded),
                         onPressed: () => _shiftDate(ref, period, selectedDate, 1),
                       ),
                     ],
@@ -127,24 +129,29 @@ class GelirGiderScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
 
                 // Tür Filtresi
-                Wrap(
-                  spacing: 8,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ChoiceChip(
-                      label: const Text('Tümü'),
-                      selected: typeFilter == null,
-                      onSelected: (_) => ref.read(transactionTypeFilterProvider.notifier).state = null,
+                    _FilterTabPill(
+                      label: 'Tümü',
+                      isSelected: typeFilter == null,
+                      color: AdaptiveColors.orange(context),
+                      onTap: () => ref.read(transactionTypeFilterProvider.notifier).state = null,
                     ),
-                    ChoiceChip(
-                      label: const Text('Gelir'),
-                      selected: typeFilter == TransactionType.income,
-                      onSelected: (_) => ref.read(transactionTypeFilterProvider.notifier).state =
+                    const SizedBox(width: 8),
+                    _FilterTabPill(
+                      label: 'Gelir',
+                      isSelected: typeFilter == TransactionType.income,
+                      color: AdaptiveColors.success(context),
+                      onTap: () => ref.read(transactionTypeFilterProvider.notifier).state =
                           typeFilter == TransactionType.income ? null : TransactionType.income,
                     ),
-                    ChoiceChip(
-                      label: const Text('Gider'),
-                      selected: typeFilter == TransactionType.expense,
-                      onSelected: (_) => ref.read(transactionTypeFilterProvider.notifier).state =
+                    const SizedBox(width: 8),
+                    _FilterTabPill(
+                      label: 'Gider',
+                      isSelected: typeFilter == TransactionType.expense,
+                      color: AdaptiveColors.error(context),
+                      onTap: () => ref.read(transactionTypeFilterProvider.notifier).state =
                           typeFilter == TransactionType.expense ? null : TransactionType.expense,
                     ),
                   ],
@@ -175,18 +182,131 @@ class GelirGiderScreen extends ConsumerWidget {
                 final net = income - expense;
 
                 return ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 96),
                   children: [
-                    // Dönem Özeti
-                    _PeriodSummaryRow(
-                      income: income,
-                      expense: expense,
-                      net: net,
+                    // Dönem Özet Hero Kartı
+                    HeroGradientCard(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'DÖNEM NET BAKİYESİ',
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${transactions.length} işlem',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              AppFormatters.formatCurrency(net),
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.6,
+                                color: net >= 0 ? AppTheme.pureWhite : const Color(0xFFF87171),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Toplam Gelir',
+                                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          '+${AppFormatters.formatCurrency(income)}',
+                                          style: const TextStyle(
+                                            color: Color(0xFF4ADE80),
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 28,
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Toplam Gider',
+                                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          '-${AppFormatters.formatCurrency(expense)}',
+                                          style: const TextStyle(
+                                            color: Color(0xFFF87171),
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
 
                     if (transactions.isEmpty)
-                      const Card(
+                      const SurfaceCard(
                         child: EmptyState(
                           icon: Icons.receipt_long_outlined,
                           title: 'Bu Dönemde İşlem Yok',
@@ -286,119 +406,49 @@ class GelirGiderScreen extends ConsumerWidget {
   }
 }
 
-class _PeriodSummaryRow extends StatelessWidget {
-  final double income;
-  final double expense;
-  final double net;
-
-  const _PeriodSummaryRow({
-    required this.income,
-    required this.expense,
-    required this.net,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _MiniSummaryCard(
-            label: 'Gelir',
-            value: AppFormatters.formatCurrency(income),
-            color: AppTheme.successColor,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _MiniSummaryCard(
-            label: 'Gider',
-            value: AppFormatters.formatCurrency(expense),
-            color: AppTheme.errorColor,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _MiniSummaryCard(
-            label: 'Net',
-            value: AppFormatters.formatCurrency(net),
-            color: net >= 0 ? AppTheme.primaryOrange : AppTheme.errorColor,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniSummaryCard extends StatelessWidget {
+class _FilterTabPill extends StatelessWidget {
   final String label;
-  final String value;
+  final bool isSelected;
   final Color color;
+  final VoidCallback onTap;
 
-  const _MiniSummaryCard({
+  const _FilterTabPill({
     required this.label,
-    required this.value,
+    required this.isSelected,
     required this.color,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : AppTheme.pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE5E7EB),
-          width: 1.2,
+    return Material(
+      color: isSelected
+          ? color.withValues(alpha: isDark ? 0.22 : 0.14)
+          : AdaptiveColors.cardBg(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? color : AdaptiveColors.cardBorder(context),
+          width: isSelected ? 1.4 : 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : AppTheme.lightTextSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: color,
-                letterSpacing: -0.3,
-              ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: isSelected
+                  ? color
+                  : (isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextSecondary),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -418,112 +468,133 @@ class _TransactionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIncome = transaction.isIncome;
-    final color = isIncome ? AppTheme.successColor : AppTheme.errorColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isIncome
+        ? AdaptiveColors.success(context)
+        : AdaptiveColors.error(context);
+    final theme = Theme.of(context);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : AppTheme.pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFE5E7EB),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    return SurfaceCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      leftAccentColor: color,
+      onTap: onEdit,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconSquircle(
+                color: color,
+                size: 42,
+                icon: isIncome ? Icons.south_west_rounded : Icons.north_east_rounded,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.description.isNotEmpty
+                          ? transaction.description
+                          : transaction.category,
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 5),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        StatusPill(
+                          label: transaction.category,
+                          color: color,
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.payments_outlined,
+                              size: 12,
+                              color: AdaptiveColors.subText(context),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              transaction.paymentMethod.displayName,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: AdaptiveColors.subText(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isIncome ? '+' : '-'}${AppFormatters.formatCurrency(transaction.amount)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      letterSpacing: -0.3,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppFormatters.formatDate(transaction.date),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AdaptiveColors.subText(context),
+                    ),
+                  ),
+                ],
+              ),
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  size: 20,
+                  color: AdaptiveColors.subText(context),
+                ),
+                onSelected: (val) {
+                  if (val == 'edit') onEdit();
+                  if (val == 'delete') onDelete();
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18),
+                        SizedBox(width: 8),
+                        Text('Düzenle'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
+                        SizedBox(width: 8),
+                        Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: isDark ? 0.2 : 0.12),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: color.withValues(alpha: 0.35),
-              width: 1,
-            ),
-          ),
-          child: Icon(
-            isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-            color: color,
-            size: 22,
-          ),
-        ),
-        title: Text(
-          transaction.description.isNotEmpty ? transaction.description : transaction.category,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            '${AppFormatters.formatDate(transaction.date)} • ${transaction.category} • ${transaction.paymentMethod.displayName}',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: isDark ? 0.16 : 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${isIncome ? '+' : '-'}${AppFormatters.formatCurrency(transaction.amount)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13.5,
-                  color: color,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
-            PopupMenuButton<String>(
-              onSelected: (val) {
-                if (val == 'edit') onEdit();
-                if (val == 'delete') onDelete();
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Düzenle'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
-                      SizedBox(width: 8),
-                      Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

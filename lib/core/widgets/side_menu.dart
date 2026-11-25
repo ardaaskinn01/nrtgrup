@@ -180,10 +180,16 @@ class SideMenu extends ConsumerWidget {
   }
 
   void _navigate(BuildContext context, String route) {
+    final currentLocation = GoRouterState.of(context).matchedLocation;
     if (isDrawer) {
       Navigator.pop(context);
     }
-    context.go(route);
+    if (currentLocation == route) return;
+    if (route == AppConstants.dashboardRoute) {
+      context.go(AppConstants.dashboardRoute);
+    } else {
+      context.push(route);
+    }
   }
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {

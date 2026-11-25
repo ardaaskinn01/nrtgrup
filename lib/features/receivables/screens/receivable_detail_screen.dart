@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/mood_burst.dart';
 import '../../../models/receivable.dart';
 import '../providers/receivable_providers.dart';
@@ -70,85 +71,112 @@ class ReceivableDetailScreen extends ConsumerWidget {
             },
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewPadding.bottom + 96),
             children: [
-              // Kalan Bakiye Kartı
-              Card(
-                color: AppTheme.pureBlack,
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Kalan Net Alacak',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        AppFormatters.formatCurrency(person.balance),
-                        style: const TextStyle(
-                          color: AppTheme.primaryOrange,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+              // Kalan Bakiye Hero Kartı
+              HeroGradientCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'KALAN NET ALACAK',
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
                         ),
-                      ),
-                      if (person.phone.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          'Telefon: ${person.phone}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        StatusPill(
+                          label: person.balance > 0 ? 'Aktif Alacak' : 'Kapandı',
+                          color: person.balance > 0
+                              ? AppTheme.primaryOrangeLight
+                              : const Color(0xFF4ADE80),
+                          showDot: true,
                         ),
                       ],
-                      const SizedBox(height: 16),
+                    ),
+                    const SizedBox(height: 6),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        AppFormatters.formatCurrency(person.balance),
+                        style: const TextStyle(
+                          color: AppTheme.primaryOrangeLight,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.7,
+                        ),
+                      ),
+                    ),
+                    if (person.phone.isNotEmpty) ...[
+                      const SizedBox(height: 8),
                       Row(
                         children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => AddReceivableEntryModal.show(
-                                context,
-                                fixedPerson: person,
-                                initialType: ReceivableEntryType.alacakEkle,
-                              ),
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('Alacak Ekle'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppTheme.pureWhite,
-                                side: const BorderSide(color: AppTheme.successColor),
-                              ),
-                              onPressed: () async {
-                                final res = await AddReceivableEntryModal.show(
-                                  context,
-                                  fixedPerson: person,
-                                  initialType: ReceivableEntryType.tahsilat,
-                                );
-                                if (res != null && res.triggerHappyBurst && context.mounted) {
-                                  MoodBurst.show(context, amount: res.amount, isIncome: true);
-                                }
-                              },
-                              icon: const Icon(Icons.check, size: 18, color: AppTheme.successColor),
-                              label: const Text('Tahsilat Düş'),
-                            ),
+                          const Icon(Icons.phone_outlined, size: 14, color: Colors.white60),
+                          const SizedBox(width: 6),
+                          Text(
+                            person.phone,
+                            style: const TextStyle(color: Colors.white70, fontSize: 12.5),
                           ),
                         ],
                       ),
                     ],
-                  ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => AddReceivableEntryModal.show(
+                              context,
+                              fixedPerson: person,
+                              initialType: ReceivableEntryType.alacakEkle,
+                            ),
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('Alacak Ekle'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF4ADE80),
+                              backgroundColor: AppTheme.successColor.withValues(alpha: 0.14),
+                              side: const BorderSide(color: Color(0xFF22C55E), width: 1.2),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            onPressed: () async {
+                              final res = await AddReceivableEntryModal.show(
+                                context,
+                                fixedPerson: person,
+                                initialType: ReceivableEntryType.tahsilat,
+                              );
+                              if (res != null && res.triggerHappyBurst && context.mounted) {
+                                MoodBurst.show(context, amount: res.amount, isIncome: true);
+                              }
+                            },
+                            icon: const Icon(Icons.check_rounded, size: 18),
+                            label: const Text('Tahsilat Düş'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
               Text(
                 'Hareket Geçmişi',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               entriesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -159,7 +187,7 @@ class ReceivableDetailScreen extends ConsumerWidget {
                 ),
                 data: (entries) {
                   if (entries.isEmpty) {
-                    return const Card(
+                    return const SurfaceCard(
                       child: EmptyState(
                         icon: Icons.receipt_long_outlined,
                         title: 'Henüz Hareket Yok',
@@ -171,70 +199,74 @@ class ReceivableDetailScreen extends ConsumerWidget {
                   return Column(
                     children: entries.map((entry) {
                       final isAdd = entry.isAddition;
-                      final color = isAdd ? AppTheme.primaryOrange : AppTheme.successColor;
-                      return Card(
+                      final color = isAdd
+                          ? AdaptiveColors.orange(context)
+                          : AdaptiveColors.success(context);
+                      return SurfaceCard(
                         margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              isAdd ? Icons.add_circle_outline : Icons.remove_circle_outline,
+                        padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+                        leftAccentColor: color,
+                        child: Row(
+                          children: [
+                            IconSquircle(
                               color: color,
+                              size: 42,
+                              icon: isAdd ? Icons.add_rounded : Icons.check_rounded,
                             ),
-                          ),
-                          title: Text(
-                            entry.description.isNotEmpty
-                                ? entry.description
-                                : entry.type.displayName,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Wrap(
-                            spacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                AppFormatters.formatDate(entry.date),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              if (entry.addedToIncome)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.successColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    entry.description.isNotEmpty
+                                        ? entry.description
+                                        : entry.type.displayName,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  child: const Text(
-                                    'Gelire Eklendi',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.successColor,
-                                    ),
+                                  const SizedBox(height: 5),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      Text(
+                                        AppFormatters.formatDate(entry.date),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AdaptiveColors.subText(context),
+                                        ),
+                                      ),
+                                      if (entry.addedToIncome)
+                                        StatusPill(
+                                          label: 'Gelire Eklendi',
+                                          color: AdaptiveColors.success(context),
+                                        ),
+                                    ],
                                   ),
-                                ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${isAdd ? '+' : '-'}${AppFormatters.formatCurrency(entry.amount)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: color,
-                                ),
+                                ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor, size: 20),
-                                onPressed: () => _deleteEntry(context, ref, entry),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${isAdd ? '+' : '-'}${AppFormatters.formatCurrency(entry.amount)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14.5,
+                                color: color,
                               ),
-                            ],
-                          ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete_outline_rounded,
+                                color: AdaptiveColors.error(context),
+                                size: 20,
+                              ),
+                              onPressed: () => _deleteEntry(context, ref, entry),
+                            ),
+                          ],
                         ),
                       );
                     }).toList(),

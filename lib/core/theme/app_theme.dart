@@ -29,11 +29,12 @@ class AppTheme {
 
   // Açık Tema
   static ThemeData get lightTheme {
-    final baseText = GoogleFonts.interTextTheme();
+    final baseText = GoogleFonts.interTextTheme(ThemeData.light().textTheme);
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       primaryColor: primaryOrange,
+      canvasColor: pureWhite,
       colorScheme: const ColorScheme.light(
         primary: primaryOrange,
         secondary: pureBlack,
@@ -52,11 +53,18 @@ class AppTheme {
       textTheme: baseText.copyWith(
         displayLarge: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: lightTextPrimary),
         displayMedium: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.bold, color: lightTextPrimary),
-        headlineMedium: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: lightTextPrimary),
-        titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: lightTextPrimary),
+        displaySmall: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold, color: lightTextPrimary),
+        headlineLarge: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: lightTextPrimary),
+        headlineMedium: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: lightTextPrimary),
+        headlineSmall: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: lightTextPrimary),
+        titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: lightTextPrimary),
+        titleMedium: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: lightTextPrimary),
+        titleSmall: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: lightTextPrimary),
         labelLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: lightTextPrimary),
-        bodyLarge: GoogleFonts.inter(color: lightTextPrimary),
-        bodyMedium: GoogleFonts.inter(color: lightTextSecondary),
+        labelMedium: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: lightTextPrimary),
+        labelSmall: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: lightTextSecondary),
+        bodyLarge: GoogleFonts.inter(fontSize: 15, color: lightTextPrimary),
+        bodyMedium: GoogleFonts.inter(fontSize: 14, color: lightTextSecondary),
         bodySmall: GoogleFonts.inter(fontSize: 12, color: lightTextSecondary),
       ),
       appBarTheme: AppBarTheme(
@@ -137,10 +145,24 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: lightInputFill,
         selectedColor: primaryOrange.withValues(alpha: 0.16),
-        checkmarkColor: primaryOrange,
-        labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: lightTextPrimary),
+        checkmarkColor: primaryOrangeDark,
+        labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: lightTextPrimary),
+        secondaryLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: primaryOrangeDark),
         side: const BorderSide(color: lightBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: pureWhite,
+        surfaceTintColor: Colors.transparent,
+        textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: lightTextPrimary),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: lightBorder),
+        ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        textColor: lightTextPrimary,
+        iconColor: lightTextSecondary,
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
@@ -194,11 +216,12 @@ class AppTheme {
 
   // Koyu Tema
   static ThemeData get darkTheme {
-    final baseText = GoogleFonts.interTextTheme();
+    final baseText = GoogleFonts.interTextTheme(ThemeData.dark().textTheme);
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       primaryColor: primaryOrange,
+      canvasColor: darkSurfaceElevated,
       colorScheme: const ColorScheme.dark(
         primary: primaryOrange,
         secondary: pureWhite,
@@ -214,14 +237,22 @@ class AppTheme {
       scaffoldBackgroundColor: pureBlack,
       dividerColor: darkBorder,
       hintColor: darkTextSecondary,
+      iconTheme: const IconThemeData(color: darkTextPrimary),
       textTheme: baseText.copyWith(
         displayLarge: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: darkTextPrimary),
         displayMedium: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.bold, color: darkTextPrimary),
-        headlineMedium: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: darkTextPrimary),
-        titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        displaySmall: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold, color: darkTextPrimary),
+        headlineLarge: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: darkTextPrimary),
+        headlineMedium: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: darkTextPrimary),
+        headlineSmall: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: darkTextPrimary),
+        titleMedium: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        titleSmall: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: darkTextPrimary),
         labelLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: darkTextPrimary),
-        bodyLarge: GoogleFonts.inter(color: darkTextPrimary),
-        bodyMedium: GoogleFonts.inter(color: darkTextSecondary),
+        labelMedium: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        labelSmall: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: darkTextSecondary),
+        bodyLarge: GoogleFonts.inter(fontSize: 15, color: darkTextPrimary),
+        bodyMedium: GoogleFonts.inter(fontSize: 14, color: darkTextSecondary),
         bodySmall: GoogleFonts.inter(fontSize: 12, color: darkTextSecondary),
       ),
       appBarTheme: AppBarTheme(
@@ -301,11 +332,35 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: darkSurfaceElevated,
-        selectedColor: primaryOrange.withValues(alpha: 0.22),
-        checkmarkColor: primaryOrange,
-        labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: darkTextPrimary),
+        selectedColor: primaryOrange.withValues(alpha: 0.24),
+        checkmarkColor: primaryOrangeLight,
+        labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        secondaryLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: primaryOrangeLight),
         side: const BorderSide(color: darkBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: darkSurfaceElevated,
+        surfaceTintColor: Colors.transparent,
+        textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: darkTextPrimary),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: darkBorder),
+        ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        textColor: darkTextPrimary,
+        iconColor: darkTextSecondary,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: darkSurface,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: darkTextPrimary),
+        contentTextStyle: GoogleFonts.inter(fontSize: 14, color: darkTextSecondary),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: darkBorder),
+        ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
@@ -342,14 +397,6 @@ class AppTheme {
         backgroundColor: primaryOrange,
         foregroundColor: pureBlack,
         elevation: 3,
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: darkSurface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: darkBorder),
-        ),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: darkSurfaceElevated,

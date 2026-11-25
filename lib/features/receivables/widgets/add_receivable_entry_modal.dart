@@ -234,6 +234,10 @@ class _AddReceivableEntryModalState
                 ] else
                   DropdownButtonFormField<String>(
                     value: _selectedPersonId,
+                    dropdownColor: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkSurfaceElevated
+                        : AppTheme.pureWhite,
+                    style: Theme.of(context).textTheme.bodyLarge,
                     decoration: const InputDecoration(
                       labelText: 'Kimden Alacak?',
                       prefixIcon: Icon(Icons.person_outline),
@@ -244,6 +248,7 @@ class _AddReceivableEntryModalState
                               child: Text(
                                 '${p.name} (${AppFormatters.formatCurrency(p.balance)})',
                                 overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodyLarge,
                               ),
                             ))
                         .toList(),

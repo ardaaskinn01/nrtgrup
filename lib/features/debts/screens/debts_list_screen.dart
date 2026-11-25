@@ -7,6 +7,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
 import '../../../models/debt.dart';
@@ -22,6 +23,7 @@ class DebtsListScreen extends ConsumerWidget {
     final isDesktop = MediaQuery.of(context).size.width > 900;
     final listAsync = ref.watch(filteredDebtsProvider);
     final totalAsync = ref.watch(totalDebtsProvider);
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
       drawer: isDesktop ? null : const Drawer(child: SideMenu(isDrawer: true)),
@@ -31,7 +33,7 @@ class DebtsListScreen extends ConsumerWidget {
             ? null
             : Builder(
                 builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(Icons.menu_rounded),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -46,66 +48,82 @@ class DebtsListScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Genel Toplam Borç Özeti
+          // Genel Toplam Borç Hero Kartı
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Card(
-              color: AppTheme.pureBlack,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.errorColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.call_made_rounded,
-                        color: AppTheme.errorColor,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Genel Toplam Borç',
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            child: HeroGradientCard(
+              accentColor: AppTheme.errorColor,
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  const IconSquircle(
+                    color: Color(0xFFF87171),
+                    icon: Icons.call_made_rounded,
+                    size: 50,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'GENEL TOPLAM BORÇ',
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
                           ),
-                          const SizedBox(height: 2),
-                          totalAsync.when(
-                            loading: () => const Text('...', style: TextStyle(color: Colors.white)),
-                            error: (_, __) => const Text('-', style: TextStyle(color: Colors.white)),
-                            data: (total) => Text(
+                        ),
+                        const SizedBox(height: 4),
+                        totalAsync.when(
+                          loading: () => const Text('...', style: TextStyle(color: Colors.white)),
+                          error: (_, __) => const Text('-', style: TextStyle(color: Colors.white)),
+                          data: (total) => FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
                               AppFormatters.formatCurrency(total),
                               style: const TextStyle(
-                                color: AppTheme.errorColor,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFF87171),
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
                               ),
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  listAsync.maybeWhen(
+                    data: (people) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${people.length} kişi',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                    orElse: () => const SizedBox.shrink(),
+                  ),
+                ],
               ),
             ),
           ),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
+            child: SearchFieldBar(
+              hintText: 'Borçlu olunan kişi ara...',
               onChanged: (val) => ref.read(debtSearchQueryProvider.notifier).state = val,
-              decoration: const InputDecoration(
-                hintText: 'Borçlu olunan kişi ara...',
-                prefixIcon: Icon(Icons.search),
-              ),
             ),
           ),
 
@@ -127,152 +145,125 @@ class DebtsListScreen extends ConsumerWidget {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
+                  padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 96),
                   itemCount: people.length,
                   itemBuilder: (context, index) {
                     final person = people[index];
-                    final isDark = Theme.of(context).brightness == Brightness.dark;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1A1A1A) : AppTheme.pureWhite,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFE5E7EB),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                    final hasDebt = person.balance > 0;
+                    final statusColor = hasDebt
+                        ? AdaptiveColors.error(context)
+                        : AdaptiveColors.success(context);
+
+                    return SurfaceCard(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.fromLTRB(14, 14, 8, 12),
+                      leftAccentColor: statusColor,
+                      onTap: () {
+                        if (person.id != null) {
+                          context.push('${AppConstants.borclarRoute}/${person.id}');
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          IconSquircle(
+                            color: statusColor,
+                            text: person.name.isNotEmpty ? person.name[0].toUpperCase() : 'B',
+                            size: 46,
                           ),
-                        ],
-                      ),
-                      child: ListTile(
-                        onTap: () {
-                          if (person.id != null) {
-                            context.push('${AppConstants.borclarRoute}/${person.id}');
-                          }
-                        },
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        leading: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppTheme.errorColor.withValues(alpha: isDark ? 0.22 : 0.12),
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(
-                              color: AppTheme.errorColor.withValues(alpha: 0.35),
-                              width: 1,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            person.name.isNotEmpty ? person.name[0].toUpperCase() : 'B',
-                            style: const TextStyle(
-                              color: AppTheme.errorColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          person.name,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                        ),
-                        subtitle: person.phone.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 3),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.phone_outlined,
-                                      size: 13,
-                                      color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      person.phone,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : (person.note.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: 3),
-                                    child: Text(
-                                      person.note,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  )
-                                : null),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  AppFormatters.formatCurrency(person.balance),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 15,
-                                    letterSpacing: -0.2,
-                                    color: person.balance > 0
-                                        ? AppTheme.errorColor
-                                        : AppTheme.successColor,
-                                  ),
+                                  person.name,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: (person.balance > 0 ? AppTheme.errorColor : AppTheme.successColor)
-                                        .withValues(alpha: isDark ? 0.18 : 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    person.balance > 0 ? 'Kalan Borç' : 'Kapandı',
+                                const SizedBox(height: 4),
+                                if (person.phone.isNotEmpty)
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.phone_outlined,
+                                        size: 13,
+                                        color: AdaptiveColors.subText(context),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        person.phone,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AdaptiveColors.subText(context),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else if (person.note.isNotEmpty)
+                                  Text(
+                                    person.note,
                                     style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: person.balance > 0
-                                          ? AppTheme.errorColor
-                                          : AppTheme.successColor,
+                                      fontSize: 12,
+                                      color: AdaptiveColors.subText(context),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                else
+                                  Text(
+                                    'Detay ve ödeme geçmişi',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: AdaptiveColors.subText(context),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
-                            PopupMenuButton<String>(
-                              onSelected: (val) {
-                                if (val == 'edit') {
-                                  AddDebtPersonModal.show(context, initialPerson: person);
-                                } else if (val == 'delete') {
-                                  _deletePerson(context, ref, person);
-                                }
-                              },
-                              itemBuilder: (context) => const [
-                                PopupMenuItem(value: 'edit', child: Text('Düzenle')),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                AppFormatters.formatCurrency(person.balance),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  letterSpacing: -0.3,
+                                  color: statusColor,
                                 ),
-                              ],
+                              ),
+                              const SizedBox(height: 4),
+                              StatusPill(
+                                label: hasDebt ? 'Kalan Borç' : 'Kapandı',
+                                color: statusColor,
+                                showDot: true,
+                              ),
+                            ],
+                          ),
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert_rounded,
+                              size: 20,
+                              color: AdaptiveColors.subText(context),
                             ),
-                          ],
-                        ),
+                            onSelected: (val) {
+                              if (val == 'edit') {
+                                AddDebtPersonModal.show(context, initialPerson: person);
+                              } else if (val == 'delete') {
+                                _deletePerson(context, ref, person);
+                              }
+                            },
+                            itemBuilder: (context) => const [
+                              PopupMenuItem(value: 'edit', child: Text('Düzenle')),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     );
                   },

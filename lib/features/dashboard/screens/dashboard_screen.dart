@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/mood_burst.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
@@ -33,6 +34,13 @@ class DashboardScreen extends ConsumerWidget {
     final totalDebtsAsync = ref.watch(totalDebtsProvider);
     final todayStaffCountAsync = ref.watch(todayCheckedInStaffCountProvider);
     final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+
+    final username = user?.email != null
+        ? (user!.email!.contains('@')
+            ? user.email!.split('@').first
+            : user.email!)
+        : 'Kullanıcı';
 
     return Scaffold(
       drawer: isDesktop ? null : const Drawer(child: SideMenu(isDrawer: true)),
@@ -42,7 +50,7 @@ class DashboardScreen extends ConsumerWidget {
             ? null
             : Builder(
                 builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(Icons.menu_rounded),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                   tooltip: 'Menü',
                 ),
@@ -62,84 +70,263 @@ class DashboardScreen extends ConsumerWidget {
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(16, 14, 16, bottomInset + 28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Karşılama Kartı
-              Container(
-                width: double.infinity,
+              // Hero Kasa & Karşılama Kartı
+              HeroGradientCard(
+                onTap: () => context.push(AppConstants.gelirGiderRoute),
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppTheme.pureBlack, Color(0xFF222222)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppTheme.primaryOrange.withValues(alpha: 0.6),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryOrange.withValues(alpha: 0.15),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.primaryOrange, width: 2),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.primaryOrange, width: 2),
+                          ),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppTheme.pureWhite,
+                            child: ClipOval(
+                              child: Image.asset(
+                                AppConstants.anaLogo,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.account_balance,
+                                  color: AppTheme.primaryOrange,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Hoş Geldiniz,',
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                username,
+                                style: const TextStyle(
+                                  color: AppTheme.pureWhite,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryOrange.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppTheme.primaryOrange.withValues(alpha: 0.45),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Kasa Detayı',
+                                style: TextStyle(
+                                  color: AppTheme.primaryOrangeLight,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 10,
+                                color: AppTheme.primaryOrangeLight,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'TOPLAM KASA BAKİYESİ',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.9,
                       ),
-                      child: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: AppTheme.pureWhite,
-                        child: ClipOval(
-                          child: Image.asset(
-                            AppConstants.anaLogo,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.person,
+                    ),
+                    const SizedBox(height: 4),
+                    balanceAsync.when(
+                      loading: () => const SizedBox(
+                        height: 36,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
                               color: AppTheme.primaryOrange,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
+                      error: (_, __) => const Text(
+                        '-',
+                        style: TextStyle(color: Colors.white, fontSize: 28),
+                      ),
+                      data: (summary) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Hoş Geldiniz,',
-                            style: TextStyle(color: Colors.white70, fontSize: 13),
-                          ),
-                          Text(
-                            user?.email != null
-                                ? (user!.email!.contains('@')
-                                    ? user.email!.split('@').first
-                                    : user.email!)
-                                : 'Kullanıcı',
-                            style: const TextStyle(
-                              color: AppTheme.pureWhite,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              AppFormatters.formatCurrency(summary.netBalance),
+                              style: TextStyle(
+                                color: summary.netBalance >= 0
+                                    ? AppTheme.pureWhite
+                                    : const Color(0xFFF87171),
+                                fontSize: 30,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.8,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.08),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _HeroSubMetric(
+                                    label: 'Bu Ay Gelir',
+                                    value: AppFormatters.formatCurrency(summary.monthIncome),
+                                    color: const Color(0xFF4ADE80),
+                                    icon: Icons.south_west_rounded,
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 30,
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: _HeroSubMetric(
+                                    label: 'Bu Ay Gider',
+                                    value: AppFormatters.formatCurrency(summary.monthExpense),
+                                    color: const Color(0xFFF87171),
+                                    icon: Icons.north_east_rounded,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.05, end: 0),
+              ).animate().fadeIn(duration: 380.ms).slideY(begin: -0.04, end: 0),
+
+              const SizedBox(height: 22),
+
+              // Hızlı İşlemler
+              Text(
+                'Hızlı İşlemler',
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _QuickActionTile(
+                    icon: Icons.add_rounded,
+                    label: 'Yeni Gelir',
+                    color: AdaptiveColors.success(context),
+                    onTap: () async {
+                      final result = await AddTransactionModal.show(
+                        context,
+                        initialType: TransactionType.income,
+                      );
+                      if (result != null && result.isNew && context.mounted) {
+                        MoodBurst.show(
+                          context,
+                          amount: result.amount,
+                          isIncome: result.isIncome,
+                        );
+                      }
+                    },
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.remove_rounded,
+                    label: 'Yeni Gider',
+                    color: AdaptiveColors.error(context),
+                    onTap: () async {
+                      final result = await AddTransactionModal.show(
+                        context,
+                        initialType: TransactionType.expense,
+                      );
+                      if (result != null && result.isNew && context.mounted) {
+                        MoodBurst.show(
+                          context,
+                          amount: result.amount,
+                          isIncome: result.isIncome,
+                        );
+                      }
+                    },
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.call_received_rounded,
+                    label: 'Alacak Ekle',
+                    color: AdaptiveColors.warning(context),
+                    onTap: () async {
+                      final res = await AddReceivableEntryModal.show(context);
+                      if (res != null && res.triggerHappyBurst && context.mounted) {
+                        MoodBurst.show(context, amount: res.amount, isIncome: true);
+                      }
+                    },
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.call_made_rounded,
+                    label: 'Borç Ekle',
+                    color: AdaptiveColors.error(context),
+                    onTap: () => AddDebtPersonModal.show(context),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.person_add_alt_1_rounded,
+                    label: 'Müşteri Ekle',
+                    color: AdaptiveColors.orange(context),
+                    onTap: () => AddCustomerModal.show(context),
+                  ),
+                ],
+              ),
 
               const SizedBox(height: 24),
 
@@ -156,50 +343,40 @@ class DashboardScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(),
                   ),
                 ),
-                error: (err, _) => Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text('Özet yüklenemedi: $err'),
-                  ),
+                error: (err, _) => SurfaceCard(
+                  child: Text('Özet yüklenemedi: $err'),
                 ),
                 data: (summary) => LayoutBuilder(
                   builder: (context, constraints) {
                     final crossAxisCount = constraints.maxWidth > 900
-                        ? 3
-                        : (constraints.maxWidth > 520 ? 2 : 1);
+                        ? 4
+                        : (constraints.maxWidth > 320 ? 2 : 1);
+                    final aspectRatio = constraints.maxWidth > 900 ? 1.5 : 1.32;
                     return GridView.count(
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      childAspectRatio: 2.1,
+                      childAspectRatio: aspectRatio,
                       children: [
-                        _StatCard(
-                          title: 'Kasa Bakiyesi',
-                          value: AppFormatters.formatCurrency(summary.netBalance),
-                          subtitle: 'Toplam Net Kasa',
-                          icon: Icons.account_balance_wallet,
-                          color: AppTheme.primaryOrange,
-                          onTap: () => context.go(AppConstants.gelirGiderRoute),
+                        _BentoStatCard(
+                          title: 'Bugün Gelir',
+                          value: AppFormatters.formatCurrency(summary.todayIncome),
+                          subtitle: 'Ay: ${AppFormatters.formatCurrency(summary.monthIncome)}',
+                          icon: Icons.south_west_rounded,
+                          color: AdaptiveColors.success(context),
+                          onTap: () => context.push(AppConstants.gelirGiderRoute),
                         ),
-                        _StatCard(
-                          title: 'Bu Ay Gelir',
-                          value: AppFormatters.formatCurrency(summary.monthIncome),
-                          subtitle: 'Bugün: ${AppFormatters.formatCurrency(summary.todayIncome)}',
-                          icon: Icons.arrow_downward_rounded,
-                          color: AppTheme.successColor,
-                          onTap: () => context.go(AppConstants.gelirGiderRoute),
+                        _BentoStatCard(
+                          title: 'Bugün Gider',
+                          value: AppFormatters.formatCurrency(summary.todayExpense),
+                          subtitle: 'Ay: ${AppFormatters.formatCurrency(summary.monthExpense)}',
+                          icon: Icons.north_east_rounded,
+                          color: AdaptiveColors.error(context),
+                          onTap: () => context.push(AppConstants.gelirGiderRoute),
                         ),
-                        _StatCard(
-                          title: 'Bu Ay Gider',
-                          value: AppFormatters.formatCurrency(summary.monthExpense),
-                          subtitle: 'Bugün: ${AppFormatters.formatCurrency(summary.todayExpense)}',
-                          icon: Icons.arrow_upward_rounded,
-                          color: AppTheme.errorColor,
-                          onTap: () => context.go(AppConstants.gelirGiderRoute),
-                        ),
-                        _StatCard(
+                        _BentoStatCard(
                           title: 'Toplam Alacak',
                           value: totalReceivablesAsync.when(
                             data: AppFormatters.formatCurrency,
@@ -207,11 +384,11 @@ class DashboardScreen extends ConsumerWidget {
                             error: (_, __) => '-',
                           ),
                           subtitle: 'Alacak Defteri',
-                          icon: Icons.call_received_rounded,
-                          color: AppTheme.warningColor,
-                          onTap: () => context.go(AppConstants.alacaklarRoute),
+                          icon: Icons.account_balance_wallet_outlined,
+                          color: AdaptiveColors.warning(context),
+                          onTap: () => context.push(AppConstants.alacaklarRoute),
                         ),
-                        _StatCard(
+                        _BentoStatCard(
                           title: 'Toplam Borç',
                           value: totalDebtsAsync.when(
                             data: AppFormatters.formatCurrency,
@@ -219,21 +396,29 @@ class DashboardScreen extends ConsumerWidget {
                             error: (_, __) => '-',
                           ),
                           subtitle: 'Borç Defteri',
-                          icon: Icons.call_made_rounded,
-                          color: AppTheme.errorColor,
-                          onTap: () => context.go(AppConstants.borclarRoute),
+                          icon: Icons.credit_card_outlined,
+                          color: AdaptiveColors.error(context),
+                          onTap: () => context.push(AppConstants.borclarRoute),
                         ),
-                        _StatCard(
-                          title: 'Bugün Çalışan Personel',
+                        _BentoStatCard(
+                          title: 'Bugün Çalışan',
                           value: todayStaffCountAsync.when(
                             data: (count) => '$count Kişi',
                             loading: () => '...',
                             error: (_, __) => '0 Kişi',
                           ),
-                          subtitle: 'Puantaj Kayıtları',
+                          subtitle: 'Personel Puantajı',
                           icon: Icons.badge_outlined,
-                          color: AppTheme.primaryOrange,
-                          onTap: () => context.go(AppConstants.personelRoute),
+                          color: AdaptiveColors.orange(context),
+                          onTap: () => context.push(AppConstants.personelRoute),
+                        ),
+                        _BentoStatCard(
+                          title: 'Müşteri Portföyü',
+                          value: 'İş & Galeri',
+                          subtitle: 'Müşterileri Gör',
+                          icon: Icons.groups_outlined,
+                          color: AdaptiveColors.orange(context),
+                          onTap: () => context.push(AppConstants.musterilerRoute),
                         ),
                       ],
                     );
@@ -241,81 +426,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 28),
-
-              Text(
-                'Hızlı İşlemler',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _QuickActionButton(
-                    icon: Icons.add_circle_outline,
-                    label: 'Yeni Gelir',
-                    color: AppTheme.successColor,
-                    onTap: () async {
-                      final result = await AddTransactionModal.show(
-                        context,
-                        initialType: TransactionType.income,
-                      );
-                      if (result != null && result.isNew && context.mounted) {
-                        MoodBurst.show(
-                          context,
-                          amount: result.amount,
-                          isIncome: result.isIncome,
-                        );
-                      }
-                    },
-                  ),
-                  _QuickActionButton(
-                    icon: Icons.remove_circle_outline,
-                    label: 'Yeni Gider',
-                    color: AppTheme.errorColor,
-                    onTap: () async {
-                      final result = await AddTransactionModal.show(
-                        context,
-                        initialType: TransactionType.expense,
-                      );
-                      if (result != null && result.isNew && context.mounted) {
-                        MoodBurst.show(
-                          context,
-                          amount: result.amount,
-                          isIncome: result.isIncome,
-                        );
-                      }
-                    },
-                  ),
-                  _QuickActionButton(
-                    icon: Icons.call_received_rounded,
-                    label: 'Alacak Ekle',
-                    color: AppTheme.warningColor,
-                    onTap: () async {
-                      final res = await AddReceivableEntryModal.show(context);
-                      if (res != null && res.triggerHappyBurst && context.mounted) {
-                        MoodBurst.show(context, amount: res.amount, isIncome: true);
-                      }
-                    },
-                  ),
-                  _QuickActionButton(
-                    icon: Icons.call_made_rounded,
-                    label: 'Borç Ekle',
-                    color: AppTheme.errorColor,
-                    onTap: () => AddDebtPersonModal.show(context),
-                  ),
-                  _QuickActionButton(
-                    icon: Icons.person_add_outlined,
-                    label: 'Müşteri Ekle',
-                    color: AppTheme.primaryOrange,
-                    onTap: () => AddCustomerModal.show(context),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 28),
+              const SizedBox(height: 26),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -324,25 +435,28 @@ class DashboardScreen extends ConsumerWidget {
                     'Son Hareketler',
                     style: theme.textTheme.titleLarge,
                   ),
-                  TextButton(
-                    onPressed: () => context.go(AppConstants.gelirGiderRoute),
-                    child: const Text('Tümünü Gör'),
+                  TextButton.icon(
+                    onPressed: () => context.push(AppConstants.gelirGiderRoute),
+                    icon: const Text('Tümünü Gör'),
+                    label: const Icon(Icons.arrow_forward_rounded, size: 16),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
 
               transactionsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Card(
+                loading: () => const Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text('Hareketler yüklenemedi: $err'),
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
                   ),
+                ),
+                error: (err, _) => SurfaceCard(
+                  child: Text('Hareketler yüklenemedi: $err'),
                 ),
                 data: (transactions) {
                   if (transactions.isEmpty) {
-                    return const Card(
+                    return const SurfaceCard(
                       child: EmptyState(
                         icon: Icons.receipt_long_outlined,
                         title: 'Henüz Kayıtlı İşlem Yok',
@@ -352,40 +466,72 @@ class DashboardScreen extends ConsumerWidget {
                   }
 
                   final recent = transactions.take(5).toList();
-                  return Card(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: recent.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final tx = recent[index];
-                        final color = tx.isIncome ? AppTheme.successColor : AppTheme.errorColor;
-                        return ListTile(
-                          onTap: () => context.go(AppConstants.gelirGiderRoute),
-                          leading: Icon(
-                            tx.isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                            color: color,
-                          ),
-                          title: Text(
-                            tx.description.isNotEmpty ? tx.description : tx.category,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            '${AppFormatters.formatDate(tx.date)} • ${tx.category}',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                          trailing: Text(
-                            '${tx.isIncome ? '+' : '-'}${AppFormatters.formatCurrency(tx.amount)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                  return Column(
+                    children: recent.map((tx) {
+                      final color = tx.isIncome
+                          ? AdaptiveColors.success(context)
+                          : AdaptiveColors.error(context);
+                      return SurfaceCard(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        leftAccentColor: color,
+                        onTap: () => context.push(AppConstants.gelirGiderRoute),
+                        child: Row(
+                          children: [
+                            IconSquircle(
+                              color: color,
+                              size: 42,
+                              icon: tx.isIncome
+                                  ? Icons.south_west_rounded
+                                  : Icons.north_east_rounded,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tx.description.isNotEmpty ? tx.description : tx.category,
+                                    style: theme.textTheme.titleMedium,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          tx.category,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AdaptiveColors.subText(context),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Text(
+                                        ' • ${AppFormatters.formatDate(tx.date)}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AdaptiveColors.subText(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            StatusPill(
+                              label: '${tx.isIncome ? '+' : '-'}${AppFormatters.formatCurrency(tx.amount)}',
                               color: color,
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   );
                 },
               ),
@@ -397,7 +543,63 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _HeroSubMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+
+  const _HeroSubMetric({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 15),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(color: Colors.white60, fontSize: 11),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BentoStatCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
@@ -405,7 +607,7 @@ class _StatCard extends StatelessWidget {
   final Color color;
   final VoidCallback? onTap;
 
-  const _StatCard({
+  const _BentoStatCard({
     required this.title,
     required this.value,
     required this.subtitle,
@@ -417,122 +619,88 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B1B1B) : AppTheme.pureWhite,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE5E7EB),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+    return SurfaceCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconSquircle(color: color, icon: icon, size: 38),
+              Icon(
+                Icons.north_east_rounded,
+                size: 16,
+                color: AdaptiveColors.subText(context).withValues(alpha: 0.6),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: isDark ? 0.22 : 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: color.withValues(alpha: 0.35),
-                      width: 1,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AdaptiveColors.subText(context),
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 3),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AdaptiveColors.subText(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  child: Icon(icon, color: color, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : AppTheme.lightTextSecondary,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        value,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                          color: isDark ? AppTheme.pureWhite : AppTheme.pureBlack,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: color,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                              subtitle,
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                color: isDark ? Colors.white60 : Colors.black54,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
+class _QuickActionTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _QuickActionButton({
+  const _QuickActionTile({
     required this.icon,
     required this.label,
     required this.color,
@@ -541,12 +709,40 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionChip(
-      avatar: Icon(icon, size: 18, color: color),
-      label: Text(label),
-      onPressed: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: AdaptiveColors.cardBg(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: AdaptiveColors.cardBorder(context), width: 1.1),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.22 : 0.13),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(icon, size: 16, color: color),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../models/attendance_record.dart';
 import '../providers/attendance_providers.dart';
 import '../providers/staff_providers.dart';
@@ -53,204 +54,203 @@ class StaffDetailScreen extends ConsumerWidget {
           }
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewPadding.bottom + 96),
             children: [
               // Personel Bilgi Kartı
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 26,
-                            backgroundColor: AppTheme.primaryOrange.withValues(alpha: 0.16),
-                            child: Text(
-                              staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'P',
-                              style: const TextStyle(
-                                color: AppTheme.primaryOrange,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
+              SurfaceCard(
+                padding: const EdgeInsets.all(16),
+                leftAccentColor: AdaptiveColors.orange(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconSquircle(
+                          color: AdaptiveColors.orange(context),
+                          text: staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'P',
+                          size: 52,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                staff.fullName,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                            ),
+                              const SizedBox(height: 5),
+                              StatusPill(
+                                label: '${staff.paymentType.displayName} • ${AppFormatters.formatCurrency(staff.wage)}',
+                                color: AdaptiveColors.orange(context),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  staff.fullName,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${staff.paymentType.displayName} • ${AppFormatters.formatCurrency(staff.wage)}',
-                                  style: const TextStyle(
-                                    color: AppTheme.primaryOrange,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (staff.phone.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Text('Telefon: ${staff.phone}', style: Theme.of(context).textTheme.bodySmall),
+                        ),
                       ],
+                    ),
+                    if (staff.phone.isNotEmpty || staff.note.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      if (staff.phone.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.phone_outlined, size: 14, color: AdaptiveColors.subText(context)),
+                            const SizedBox(width: 6),
+                            Text(
+                              staff.phone,
+                              style: TextStyle(fontSize: 12.5, color: AdaptiveColors.subText(context)),
+                            ),
+                          ],
+                        ),
                       if (staff.note.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text('Not: ${staff.note}', style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Not: ${staff.note}',
+                          style: TextStyle(fontSize: 12.5, color: AdaptiveColors.subText(context)),
+                        ),
                       ],
                     ],
-                  ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
 
               // Ay / Yıl Seçici
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: () {
-                          ref.read(attendanceMonthYearProvider.notifier).state = DateTime(
-                            selectedMonthYear.year,
-                            selectedMonthYear.month - 1,
-                          );
-                        },
-                      ),
-                      InkWell(
-                        onTap: () async {
-                          final picked = await MonthYearPickerDialog.show(
-                            context,
-                            selectedMonthYear,
-                          );
-                          if (picked != null) {
-                            ref.read(attendanceMonthYearProvider.notifier).state = picked;
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.calendar_month_outlined,
-                                size: 18,
-                                color: AppTheme.primaryOrange,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                AppFormatters.formatMonthYear(selectedMonthYear),
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.arrow_drop_down, size: 18),
-                            ],
-                          ),
+              SurfaceCard(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded),
+                      onPressed: () {
+                        ref.read(attendanceMonthYearProvider.notifier).state = DateTime(
+                          selectedMonthYear.year,
+                          selectedMonthYear.month - 1,
+                        );
+                      },
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await MonthYearPickerDialog.show(
+                          context,
+                          selectedMonthYear,
+                        );
+                        if (picked != null) {
+                          ref.read(attendanceMonthYearProvider.notifier).state = picked;
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.calendar_month_outlined,
+                              size: 18,
+                              color: AppTheme.primaryOrange,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppFormatters.formatMonthYear(selectedMonthYear),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.arrow_drop_down, size: 18),
+                          ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: () {
-                          ref.read(attendanceMonthYearProvider.notifier).state = DateTime(
-                            selectedMonthYear.year,
-                            selectedMonthYear.month + 1,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right_rounded),
+                      onPressed: () {
+                        ref.read(attendanceMonthYearProvider.notifier).state = DateTime(
+                          selectedMonthYear.year,
+                          selectedMonthYear.month + 1,
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
 
-              // Bu Ay Toplam Çalışılan Süre Kartı + Çalışılan Günler Butonu
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryOrange.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.access_time_filled_rounded,
-                              color: AppTheme.primaryOrange,
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Bu Ay Toplam Çalışılan Süre',
-                                  style: Theme.of(context).textTheme.bodySmall,
+              // Bu Ay Toplam Çalışılan Süre Hero Kartı
+              HeroGradientCard(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        const IconSquircle(
+                          color: AppTheme.primaryOrangeLight,
+                          icon: Icons.access_time_filled_rounded,
+                          size: 48,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'BU AY TOPLAM ÇALIŞILAN SÜRE',
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
                                 ),
-                                const SizedBox(height: 4),
-                                totalMinutesAsync.when(
-                                  loading: () => const Text('Hesaplanıyor...'),
-                                  error: (_, __) => const Text('-'),
-                                  data: (mins) => Text(
-                                    AppFormatters.formatDurationMinutes(mins),
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryOrange,
-                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              totalMinutesAsync.when(
+                                loading: () => const Text('Hesaplanıyor...', style: TextStyle(color: Colors.white)),
+                                error: (_, __) => const Text('-', style: TextStyle(color: Colors.white)),
+                                data: (mins) => Text(
+                                  AppFormatters.formatDurationMinutes(mins),
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryOrangeLight,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.pureWhite,
+                        side: BorderSide(color: AppTheme.primaryOrange.withValues(alpha: 0.55)),
+                        backgroundColor: AppTheme.primaryOrange.withValues(alpha: 0.12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          final records = filteredRecordsAsync.value ?? [];
-                          WorkedDaysDialog.show(
-                            context,
-                            staffName: staff.fullName,
-                            monthYear: selectedMonthYear,
-                            records: records,
-                          );
-                        },
-                        icon: const Icon(Icons.event_note_outlined, size: 18),
-                        label: const Text('Çalışılan Günleri Listele'),
-                      ),
-                    ],
-                  ),
+                      onPressed: () {
+                        final records = filteredRecordsAsync.value ?? [];
+                        WorkedDaysDialog.show(
+                          context,
+                          staffName: staff.fullName,
+                          monthYear: selectedMonthYear,
+                          records: records,
+                        );
+                      },
+                      icon: const Icon(Icons.event_note_outlined, size: 18, color: AppTheme.primaryOrangeLight),
+                      label: const Text('Çalışılan Günleri Listele'),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
 
               Text(
                 'Giriş - Çıkış Kayıtları',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               filteredRecordsAsync.when(
                 loading: () => const Center(
@@ -259,7 +259,7 @@ class StaffDetailScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(),
                   ),
                 ),
-                error: (err, _) => Card(
+                error: (err, _) => SurfaceCard(
                   child: EmptyState(
                     icon: Icons.error_outline,
                     title: 'Kayıtlar Yüklenemedi',
@@ -268,7 +268,7 @@ class StaffDetailScreen extends ConsumerWidget {
                 ),
                 data: (records) {
                   if (records.isEmpty) {
-                    return const Card(
+                    return const SurfaceCard(
                       child: EmptyState(
                         icon: Icons.history_toggle_off,
                         title: 'Bu Ayda Kayıt Yok',
@@ -346,110 +346,100 @@ class _AttendanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final durationText = AppFormatters.formatDurationMinutes(record.durationMinutes);
-    return Card(
+    final orange = AdaptiveColors.orange(context);
+
+    return SurfaceCard(
       margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        leading: Container(
-          width: 44,
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryOrange.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      leftAccentColor: orange,
+      onTap: onEdit,
+      child: Row(
+        children: [
+          IconSquircle(
+            color: orange,
+            text: '${record.date.day}',
+            size: 44,
           ),
-          child: Text(
-            '${record.date.day}',
-            style: const TextStyle(
-              color: AppTheme.primaryOrange,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${AppFormatters.formatDate(record.date)} (${AppFormatters.formatDayName(record.date)})',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    '${record.startTimeFormatted} - ${record.endTimeFormatted}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryOrange.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$durationText çalıştı',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryOrange,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (record.note.isNotEmpty) ...[
-                const SizedBox(height: 4),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  record.note,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  maxLines: 2,
+                  '${AppFormatters.formatDate(record.date)} (${AppFormatters.formatDayName(record.date)})',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 5),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '${record.startTimeFormatted} - ${record.endTimeFormatted}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AdaptiveColors.subText(context),
+                      ),
+                    ),
+                    StatusPill(
+                      label: '$durationText çalıştı',
+                      color: orange,
+                    ),
+                  ],
+                ),
+                if (record.note.isNotEmpty) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    record.note,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AdaptiveColors.subText(context),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert_rounded,
+              size: 20,
+              color: AdaptiveColors.subText(context),
+            ),
+            onSelected: (val) {
+              if (val == 'edit') onEdit();
+              if (val == 'delete') onDelete();
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 8),
+                    Text('Düzenle'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
+                    SizedBox(width: 8),
+                    Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (val) {
-            if (val == 'edit') onEdit();
-            if (val == 'delete') onDelete();
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Düzenle'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
-                  SizedBox(width: 8),
-                  Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
-                ],
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

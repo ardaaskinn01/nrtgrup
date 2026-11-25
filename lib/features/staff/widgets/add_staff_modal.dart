@@ -190,12 +190,22 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
 
               DropdownButtonFormField<PaymentPeriod>(
                 value: _paymentType,
+                dropdownColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkSurfaceElevated
+                    : AppTheme.pureWhite,
+                style: Theme.of(context).textTheme.bodyLarge,
                 decoration: const InputDecoration(
                   labelText: 'Ödeme Tipi',
                   prefixIcon: Icon(Icons.calendar_view_week_outlined),
                 ),
                 items: PaymentPeriod.values
-                    .map((p) => DropdownMenuItem(value: p, child: Text(p.displayName)))
+                    .map((p) => DropdownMenuItem(
+                          value: p,
+                          child: Text(
+                            p.displayName,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _paymentType = val);

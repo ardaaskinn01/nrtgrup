@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
 import '../../../models/customer.dart';
@@ -20,6 +22,7 @@ class CustomerListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.of(context).size.width > 900;
     final customersAsync = ref.watch(filteredCustomersProvider);
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
       drawer: isDesktop ? null : const Drawer(child: SideMenu(isDrawer: true)),
@@ -29,7 +32,7 @@ class CustomerListScreen extends ConsumerWidget {
             ? null
             : Builder(
                 builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(Icons.menu_rounded),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -45,13 +48,10 @@ class CustomerListScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            child: SearchFieldBar(
+              hintText: 'Müşteri ara (isim, telefon, yapılan iş)...',
               onChanged: (val) => ref.read(customerSearchQueryProvider.notifier).state = val,
-              decoration: const InputDecoration(
-                hintText: 'Müşteri ara (isim, telefon, yapılan iş)...',
-                prefixIcon: Icon(Icons.search),
-              ),
             ),
           ),
           Expanded(
@@ -72,7 +72,7 @@ class CustomerListScreen extends ConsumerWidget {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                  padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset + 96),
                   itemCount: customers.length,
                   itemBuilder: (context, index) {
                     final customer = customers[index];
@@ -139,162 +139,156 @@ class _CustomerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final orange = AdaptiveColors.orange(context);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : AppTheme.pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFE5E7EB),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryOrange.withValues(alpha: isDark ? 0.22 : 0.12),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: AppTheme.primaryOrange.withValues(alpha: 0.35),
-              width: 1,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            customer.name.isNotEmpty ? customer.name[0].toUpperCase() : 'M',
-            style: const TextStyle(
-              color: AppTheme.primaryOrange,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                customer.name,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+    return SurfaceCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 8, 12),
+      leftAccentColor: orange,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconSquircle(
+                color: orange,
+                text: customer.name.isNotEmpty ? customer.name[0].toUpperCase() : 'M',
+                size: 46,
               ),
-            ),
-            const SizedBox(width: 8),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      customer.name,
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (customer.phone.isNotEmpty) ...[
+                          Icon(
+                            Icons.phone_outlined,
+                            size: 13,
+                            color: AdaptiveColors.subText(context),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              customer.phone,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AdaptiveColors.subText(context),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else ...[
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 12,
+                            color: AdaptiveColors.subText(context),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            AppFormatters.formatDate(customer.createdAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AdaptiveColors.subText(context),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusPill(
+                label: '${customer.photoCount} Fotoğraf',
+                color: orange,
+                icon: Icons.photo_library_outlined,
+              ),
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  size: 20,
+                  color: AdaptiveColors.subText(context),
+                ),
+                onSelected: (val) {
+                  if (val == 'edit') onEdit();
+                  if (val == 'delete') onDelete();
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18),
+                        SizedBox(width: 8),
+                        Text('Düzenle'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
+                        SizedBox(width: 8),
+                        Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (customer.workSummary.isNotEmpty) ...[
+            const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppTheme.primaryOrange.withValues(alpha: 0.2)
-                    : AppTheme.primaryOrange.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.35),
-                  width: 1,
+                  color: AdaptiveColors.cardBorder(context),
+                  width: 0.8,
                 ),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.photo_library_outlined,
-                    size: 13,
-                    color: isDark ? AppTheme.primaryOrangeLight : AppTheme.primaryOrangeDark,
+                    Icons.handyman_outlined,
+                    size: 14,
+                    color: orange,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${customer.photoCount}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppTheme.primaryOrangeLight : AppTheme.primaryOrangeDark,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      customer.workSummary,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AdaptiveColors.subText(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
             ),
           ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (customer.phone.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.phone_outlined,
-                        size: 13,
-                        color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        customer.phone,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white60 : AppTheme.lightTextSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (customer.workSummary.isNotEmpty)
-                Text(
-                  customer.workSummary,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: isDark ? Colors.white54 : Colors.black54,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-            ],
-          ),
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (val) {
-            if (val == 'edit') onEdit();
-            if (val == 'delete') onDelete();
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Düzenle'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_outline, size: 18, color: AppTheme.errorColor),
-                  SizedBox(width: 8),
-                  Text('Sil', style: TextStyle(color: AppTheme.errorColor)),
-                ],
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
