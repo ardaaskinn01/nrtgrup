@@ -100,94 +100,104 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              // Ana Logo & Şirket Başlığı
-              ScaleTransition(
-                scale: _scaleAnim,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(26),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryOrange.withValues(alpha: 0.25),
-                            blurRadius: 28,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(26),
-                        child: Image.asset(
-                          AppConstants.anaLogo,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
-                            Icons.apartment_rounded,
-                            size: 56,
-                            color: AppTheme.primaryOrange,
+        child: SizedBox.expand(
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(flex: 2),
+                // Ana Logo & Şirket Başlığı
+                ScaleTransition(
+                  scale: _scaleAnim,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 110,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(26),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryOrange.withValues(alpha: 0.25),
+                              blurRadius: 28,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(26),
+                          child: Image.asset(
+                            AppConstants.anaLogo,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.apartment_rounded,
+                              size: 56,
+                              color: AppTheme.primaryOrange,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 22),
-                    Text(
-                      AppConstants.appName,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : AppTheme.pureBlack,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
+                      const SizedBox(height: 22),
+                      Text(
+                        AppConstants.appName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : AppTheme.pureBlack,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'İnşaat & Taahhüt Yönetim Sistemi',
-                      style: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black54,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 6),
+                      Text(
+                        'İnşaat & Taahhüt Yönetim Sistemi',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isDark ? Colors.white60 : Colors.black54,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(flex: 2),
-
-              // Yükleniyor Göstergesi
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryOrange),
-                ),
-              ),
-
-              const Spacer(flex: 1),
-
-              // Alt Logo (assets/drawerlogo.jpg)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    AppConstants.drawerLogo,
-                    height: 48,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                const Spacer(flex: 2),
+
+                // Yükleniyor Göstergesi
+                const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryOrange),
+                    ),
+                  ),
+                ),
+
+                const Spacer(flex: 1),
+
+                // Alt Logo (assets/drawerlogo.jpg)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        AppConstants.drawerLogo,
+                        height: 48,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
