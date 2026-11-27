@@ -9,7 +9,7 @@ final stocksStreamProvider = StreamProvider<List<StockItem>>((ref) {
   if (authUser == null) {
     return const Stream.empty();
   }
-  return ref.watch(stockRepositoryProvider).watchStocks();
+  return ref.watch(stockRepositoryProvider).watchStocks().handleError((_) => <StockItem>[]);
 });
 
 final stockSearchQueryProvider = StateProvider<String>((ref) => '');

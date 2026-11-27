@@ -32,7 +32,7 @@ final staffByIdProvider = StreamProvider.family<StaffMember?, String>((ref, id) 
   if (authUser == null) {
     return const Stream.empty();
   }
-  return ref.watch(staffRepositoryProvider).watchStaffById(id);
+  return ref.watch(staffRepositoryProvider).watchStaffById(id).handleError((_) => null);
 });
 
 final staffPaymentsStreamProvider =
@@ -41,5 +41,5 @@ final staffPaymentsStreamProvider =
   if (authUser == null) {
     return const Stream.empty();
   }
-  return ref.watch(staffRepositoryProvider).watchPayments(staffId);
+  return ref.watch(staffRepositoryProvider).watchPayments(staffId).handleError((_) => <StaffPayment>[]);
 });

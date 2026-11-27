@@ -44,6 +44,11 @@ final monthlyTotalMinutesProvider =
 
 /// Bugün giriş yapmış benzersiz personel sayısı
 final todayCheckedInStaffCountProvider = StreamProvider<int>((ref) {
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) {
+    return const Stream.empty();
+  }
+
   final firestore = ref.watch(firestoreProvider);
   final now = DateTime.now();
   final todayStart = DateTime(now.year, now.month, now.day);
@@ -63,5 +68,5 @@ final todayCheckedInStaffCountProvider = StreamProvider<int>((ref) {
       }
     }
     return staffIds.length;
-  });
+  }).handleError((_) => 0);
 });

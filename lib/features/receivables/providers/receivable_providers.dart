@@ -35,10 +35,14 @@ final totalReceivablesProvider = Provider<AsyncValue<double>>((ref) {
 
 final receivableByIdProvider =
     StreamProvider.family<ReceivablePerson?, String>((ref, id) {
-  return ref.watch(receivableRepositoryProvider).watchPersonById(id);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(receivableRepositoryProvider).watchPersonById(id).handleError((_) => null);
 });
 
 final receivableEntriesProvider =
     StreamProvider.family<List<ReceivableEntry>, String>((ref, personId) {
-  return ref.watch(receivableRepositoryProvider).watchEntries(personId);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(receivableRepositoryProvider).watchEntries(personId).handleError((_) => <ReceivableEntry>[]);
 });

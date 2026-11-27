@@ -72,7 +72,7 @@ final chequesStreamProvider = StreamProvider<List<Cheque>>((ref) {
   if (authUser == null) {
     return const Stream.empty();
   }
-  return ref.watch(chequeRepositoryProvider).watchAllCheques();
+  return ref.watch(chequeRepositoryProvider).watchAllCheques().handleError((_) => <Cheque>[]);
 });
 
 /// Sadece kasada aktif olarak duran (henüz borca verilmemiş) çekler

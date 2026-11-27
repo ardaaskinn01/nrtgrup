@@ -13,7 +13,7 @@ final todosStreamProvider = StreamProvider<List<TodoItem>>((ref) {
     // Her güncellemede lokal bildirimleri sabah 09:00 için otomatik senkronize et
     NotificationService.instance.syncTodoNotifications(list);
     return list;
-  });
+  }).handleError((_) => <TodoItem>[]);
 });
 
 enum TodoFilterMode { all, pending, overdue, completed }

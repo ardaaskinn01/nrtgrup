@@ -28,15 +28,21 @@ final filteredCustomersProvider = Provider<AsyncValue<List<Customer>>>((ref) {
 });
 
 final customerByIdProvider = StreamProvider.family<Customer?, String>((ref, id) {
-  return ref.watch(customerRepositoryProvider).watchCustomerById(id);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(customerRepositoryProvider).watchCustomerById(id).handleError((_) => null);
 });
 
 final customerPhotosProvider =
     StreamProvider.family<List<CustomerWorkPhoto>, String>((ref, customerId) {
-  return ref.watch(customerRepositoryProvider).watchPhotos(customerId);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(customerRepositoryProvider).watchPhotos(customerId).handleError((_) => <CustomerWorkPhoto>[]);
 });
 
 final customerNotesProvider =
     StreamProvider.family<List<CustomerNote>, String>((ref, customerId) {
-  return ref.watch(customerRepositoryProvider).watchNotes(customerId);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(customerRepositoryProvider).watchNotes(customerId).handleError((_) => <CustomerNote>[]);
 });

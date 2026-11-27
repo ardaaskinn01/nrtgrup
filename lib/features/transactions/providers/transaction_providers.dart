@@ -14,7 +14,7 @@ final transactionsStreamProvider = StreamProvider<List<AppTransaction>>((ref) {
     return const Stream.empty();
   }
   final repository = ref.watch(transactionRepositoryProvider);
-  return repository.watchTransactions();
+  return repository.watchTransactions().handleError((_) => <AppTransaction>[]);
 });
 
 /// Gelir Gider sayfası filtre state'leri

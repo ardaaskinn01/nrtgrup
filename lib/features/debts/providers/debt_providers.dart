@@ -34,10 +34,14 @@ final totalDebtsProvider = Provider<AsyncValue<double>>((ref) {
 });
 
 final debtByIdProvider = StreamProvider.family<DebtPerson?, String>((ref, id) {
-  return ref.watch(debtRepositoryProvider).watchPersonById(id);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(debtRepositoryProvider).watchPersonById(id).handleError((_) => null);
 });
 
 final debtEntriesProvider =
     StreamProvider.family<List<DebtEntry>, String>((ref, personId) {
-  return ref.watch(debtRepositoryProvider).watchEntries(personId);
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) return const Stream.empty();
+  return ref.watch(debtRepositoryProvider).watchEntries(personId).handleError((_) => <DebtEntry>[]);
 });

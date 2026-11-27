@@ -8,7 +8,7 @@ final suppliersStreamProvider = StreamProvider<List<Supplier>>((ref) {
   if (authUser == null) {
     return const Stream.empty();
   }
-  return ref.watch(supplierRepositoryProvider).watchSuppliers();
+  return ref.watch(supplierRepositoryProvider).watchSuppliers().handleError((_) => <Supplier>[]);
 });
 
 final supplierSearchQueryProvider = StateProvider<String>((ref) => '');
