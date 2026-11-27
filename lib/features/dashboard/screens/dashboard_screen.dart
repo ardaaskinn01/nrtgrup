@@ -19,7 +19,9 @@ import '../../receivables/widgets/add_receivable_entry_modal.dart';
 import '../../staff/providers/attendance_providers.dart';
 import '../../todos/providers/todo_providers.dart';
 import '../../transactions/providers/transaction_providers.dart';
+import '../../transactions/widgets/add_transaction_modal.dart';
 import '../../transactions/widgets/cash_offset_modal.dart';
+import '../../../models/transaction.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -328,6 +330,34 @@ class DashboardScreen extends ConsumerWidget {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
+                  _QuickActionTile(
+                    icon: Icons.add_circle_outline_rounded,
+                    label: 'Gelir Ekle',
+                    color: AdaptiveColors.success(context),
+                    onTap: () async {
+                      final res = await AddTransactionModal.show(
+                        context,
+                        initialType: TransactionType.income,
+                      );
+                      if (res != null && context.mounted) {
+                        MoodBurst.show(context, amount: res.amount, isIncome: true);
+                      }
+                    },
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.remove_circle_outline_rounded,
+                    label: 'Gider Ekle',
+                    color: AdaptiveColors.error(context),
+                    onTap: () async {
+                      final res = await AddTransactionModal.show(
+                        context,
+                        initialType: TransactionType.expense,
+                      );
+                      if (res != null && context.mounted) {
+                        MoodBurst.show(context, amount: res.amount, isIncome: false);
+                      }
+                    },
+                  ),
                   _QuickActionTile(
                     icon: Icons.call_received_rounded,
                     label: 'Alacak Ekle',
