@@ -5,6 +5,8 @@ class Customer {
   final String name;
   final String phone;
   final String workSummary;
+  final String avatarUrl;
+  final String avatarPath;
   final int photoCount;
   final DateTime createdAt;
 
@@ -13,6 +15,8 @@ class Customer {
     required this.name,
     this.phone = '',
     this.workSummary = '',
+    this.avatarUrl = '',
+    this.avatarPath = '',
     this.photoCount = 0,
     required this.createdAt,
   });
@@ -30,6 +34,8 @@ class Customer {
       name: data['name'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
       workSummary: data['workSummary'] as String? ?? '',
+      avatarUrl: data['avatarUrl'] as String? ?? '',
+      avatarPath: data['avatarPath'] as String? ?? '',
       photoCount: (data['photoCount'] as num?)?.toInt() ?? 0,
       createdAt: parseDate(data['createdAt']),
     );
@@ -40,6 +46,8 @@ class Customer {
       'name': name,
       'phone': phone,
       'workSummary': workSummary,
+      'avatarUrl': avatarUrl,
+      'avatarPath': avatarPath,
       'photoCount': photoCount,
       'createdAt': isNew ? FieldValue.serverTimestamp() : Timestamp.fromDate(createdAt),
     };
@@ -50,6 +58,8 @@ class Customer {
     String? name,
     String? phone,
     String? workSummary,
+    String? avatarUrl,
+    String? avatarPath,
     int? photoCount,
     DateTime? createdAt,
   }) {
@@ -58,6 +68,8 @@ class Customer {
       name: name ?? this.name,
       phone: phone ?? this.phone,
       workSummary: workSummary ?? this.workSummary,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarPath: avatarPath ?? this.avatarPath,
       photoCount: photoCount ?? this.photoCount,
       createdAt: createdAt ?? this.createdAt,
     );

@@ -10,7 +10,6 @@ import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/mood_burst.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
-import '../../../models/transaction.dart';
 import '../../auth/services/auth_service.dart';
 import '../../customers/widgets/add_customer_modal.dart';
 import '../../debts/providers/debt_providers.dart';
@@ -18,8 +17,9 @@ import '../../debts/widgets/add_debt_person_modal.dart';
 import '../../receivables/providers/receivable_providers.dart';
 import '../../receivables/widgets/add_receivable_entry_modal.dart';
 import '../../staff/providers/attendance_providers.dart';
+import '../../todos/providers/todo_providers.dart';
 import '../../transactions/providers/transaction_providers.dart';
-import '../../transactions/widgets/add_transaction_modal.dart';
+import '../../transactions/widgets/cash_offset_modal.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -34,6 +34,7 @@ class DashboardScreen extends ConsumerWidget {
     final totalDebtsAsync = ref.watch(totalDebtsProvider);
     final todayStaffCountAsync = ref.watch(todayCheckedInStaffCountProvider);
     final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final upcomingTodosAsync = ref.watch(upcomingDashboardTodosProvider);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     final username = user?.email != null
@@ -76,7 +77,7 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               // Hero Kasa & Karşılama Kartı
               HeroGradientCard(
-                onTap: () => context.push(AppConstants.gelirGiderRoute),
+                onTap: () => context.push(AppConstants.cashDetailRoute),
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,7 +210,68 @@ class DashboardScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
+                          // Nakit / Çek Dağılımı
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.06),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.payments_outlined, color: Color(0xFF4ADE80), size: 15),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          'Nakit: ${AppFormatters.formatCurrency(summary.cashBalance)}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.06),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.receipt_long_outlined, color: AppTheme.primaryOrangeLight, size: 15),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          'Çek (${summary.chequeCount}): ${AppFormatters.formatCurrency(summary.chequeBalance)}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
@@ -267,42 +329,6 @@ class DashboardScreen extends ConsumerWidget {
                 runSpacing: 10,
                 children: [
                   _QuickActionTile(
-                    icon: Icons.add_rounded,
-                    label: 'Yeni Gelir',
-                    color: AdaptiveColors.success(context),
-                    onTap: () async {
-                      final result = await AddTransactionModal.show(
-                        context,
-                        initialType: TransactionType.income,
-                      );
-                      if (result != null && result.isNew && context.mounted) {
-                        MoodBurst.show(
-                          context,
-                          amount: result.amount,
-                          isIncome: result.isIncome,
-                        );
-                      }
-                    },
-                  ),
-                  _QuickActionTile(
-                    icon: Icons.remove_rounded,
-                    label: 'Yeni Gider',
-                    color: AdaptiveColors.error(context),
-                    onTap: () async {
-                      final result = await AddTransactionModal.show(
-                        context,
-                        initialType: TransactionType.expense,
-                      );
-                      if (result != null && result.isNew && context.mounted) {
-                        MoodBurst.show(
-                          context,
-                          amount: result.amount,
-                          isIncome: result.isIncome,
-                        );
-                      }
-                    },
-                  ),
-                  _QuickActionTile(
                     icon: Icons.call_received_rounded,
                     label: 'Alacak Ekle',
                     color: AdaptiveColors.warning(context),
@@ -324,6 +350,14 @@ class DashboardScreen extends ConsumerWidget {
                     label: 'Müşteri Ekle',
                     color: AdaptiveColors.orange(context),
                     onTap: () => AddCustomerModal.show(context),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.balance_rounded,
+                    label: 'Kasa Eşitle',
+                    color: theme.brightness == Brightness.dark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF2563EB),
+                    onTap: () => CashOffsetModal.show(context),
                   ),
                 ],
               ),
@@ -526,6 +560,135 @@ class DashboardScreen extends ConsumerWidget {
                             const SizedBox(width: 10),
                             StatusPill(
                               label: '${tx.isIncome ? '+' : '-'}${AppFormatters.formatCurrency(tx.amount)}',
+                              color: color,
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 26),
+
+              // Bugün ve Yarınki Yapılacaklar Özeti
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Bugün & Yarın Yapılacaklar',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  TextButton.icon(
+                    onPressed: () => context.push(AppConstants.yapilacaklarRoute),
+                    icon: const Text('Tümünü Gör'),
+                    label: const Icon(Icons.arrow_forward_rounded, size: 16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              upcomingTodosAsync.when(
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (err, _) => SurfaceCard(
+                  child: Text('Yapılacaklar yüklenemedi: $err'),
+                ),
+                data: (todos) {
+                  if (todos.isEmpty) {
+                    return SurfaceCard(
+                      onTap: () => context.push(AppConstants.yapilacaklarRoute),
+                      child: Row(
+                        children: [
+                          IconSquircle(
+                            color: AdaptiveColors.orange(context),
+                            icon: Icons.checklist_rounded,
+                            size: 42,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Bugün veya yarın için bekleyen görev yok',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Yapılacaklar listesini açmak için dokunun',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: AdaptiveColors.subText(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: AdaptiveColors.subText(context),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: todos.map((todo) {
+                      final color = todo.isToday
+                          ? AdaptiveColors.orange(context)
+                          : (theme.brightness == Brightness.dark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF2563EB));
+                      return SurfaceCard(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        leftAccentColor: color,
+                        onTap: () => context.push(AppConstants.yapilacaklarRoute),
+                        child: Row(
+                          children: [
+                            IconSquircle(
+                              color: color,
+                              size: 40,
+                              icon: Icons.task_alt_rounded,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    todo.title,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (todo.description.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      todo.description,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: AdaptiveColors.subText(context),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            StatusPill(
+                              label: todo.isToday ? 'Bugün' : 'Yarın',
                               color: color,
                             ),
                           ],

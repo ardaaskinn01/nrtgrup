@@ -154,10 +154,33 @@ class SideMenu extends ConsumerWidget {
                     onTap: () => _navigate(context, AppConstants.musterilerRoute),
                   ),
                   _MenuItem(
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Tedarikçiler',
+                    isActive: currentLocation == AppConstants.tedarikcilerRoute,
+                    onTap: () => _navigate(context, AppConstants.tedarikcilerRoute),
+                  ),
+                  _MenuItem(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'Stok',
+                    isActive: currentLocation == AppConstants.stokRoute,
+                    onTap: () => _navigate(context, AppConstants.stokRoute),
+                  ),
+                  _MenuItem(
                     icon: Icons.badge_outlined,
                     title: 'Personel',
                     isActive: currentLocation == AppConstants.personelRoute,
                     onTap: () => _navigate(context, AppConstants.personelRoute),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    child: Divider(height: 1),
+                  ),
+                  _MenuItem(
+                    icon: Icons.checklist_rounded,
+                    title: 'Yapılacaklar',
+                    iconColor: AppTheme.primaryOrange,
+                    isActive: currentLocation == AppConstants.yapilacaklarRoute,
+                    onTap: () => _navigate(context, AppConstants.yapilacaklarRoute),
                   ),
                 ],
               ),

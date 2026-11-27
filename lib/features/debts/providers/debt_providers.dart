@@ -1,8 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/firebase_providers.dart';
 import '../../../models/debt.dart';
 import '../repositories/debt_repository.dart';
 
 final debtsStreamProvider = StreamProvider<List<DebtPerson>>((ref) {
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) {
+    return const Stream.empty();
+  }
   return ref.watch(debtRepositoryProvider).watchDebts();
 });
 

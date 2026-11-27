@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/firebase_providers.dart';
+import '../../../models/cheque.dart';
 import '../../../models/debt.dart';
 import '../../../models/transaction.dart';
 
@@ -17,6 +18,9 @@ class DebtRepository {
 
   CollectionReference<Map<String, dynamic>> get _transactionsCollection =>
       _firestore.collection('transactions');
+
+  CollectionReference<Map<String, dynamic>> get _chequesCollection =>
+      _firestore.collection('cheques');
 
   Stream<List<DebtPerson>> watchDebts() {
     return _peopleCollection
@@ -104,6 +108,8 @@ class DebtRepository {
     required DateTime date,
     required String description,
     required bool addToLedger,
+    PaymentMethod paymentMethod = PaymentMethod.cash,
+    String? selectedChequeId,
   }) async {
     String? linkedTxId;
     final isPayment = type == DebtEntryType.odeme;
@@ -112,14 +118,17 @@ class DebtRepository {
     final entryRef = _entriesCollection(personId).doc();
 
     if (addToLedger) {
+      final methodTag = paymentMethod == PaymentMethod.checkNote ? ' [Çek]' : '';
       final txDesc = description.isNotEmpty
-          ? '$personName - $description'
-          : (isPayment ? '$personName (Borç Ödemesi)' : '$personName (Alınan Borç)');
+          ? '$personName - $description$methodTag'
+          : (isPayment
+              ? '$personName (Borç Ödemesi)$methodTag'
+              : '$personName (Alınan Borç)$methodTag');
       final tx = AppTransaction(
         amount: amount,
         type: txIsIncome ? TransactionType.income : TransactionType.expense,
         category: isPayment ? 'Borç Ödemesi' : 'Alınan Borç',
-        paymentMethod: PaymentMethod.cash,
+        paymentMethod: paymentMethod,
         description: txDesc,
         date: date,
         createdAt: DateTime.now(),
@@ -129,6 +138,17 @@ class DebtRepository {
       );
       final txDoc = await _transactionsCollection.add(tx.toFirestore(isNew: true));
       linkedTxId = txDoc.id;
+
+      // Eğer borç ödemesi kasadaki ÇEK ile yapılıyorsa o çeki 'Verildi' olarak işaretle
+      if (isPayment &&
+          paymentMethod == PaymentMethod.checkNote &&
+          selectedChequeId != null &&
+          selectedChequeId.isNotEmpty) {
+        await _chequesCollection.doc(selectedChequeId).update({
+          'status': ChequeStatus.given.value,
+          'givenToName': personName,
+        });
+      }
     }
 
     final entry = DebtEntry(

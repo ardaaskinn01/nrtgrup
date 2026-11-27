@@ -10,17 +10,20 @@ import '../repositories/transaction_repository.dart';
 class AddTransactionModal extends ConsumerStatefulWidget {
   final AppTransaction? initialTransaction;
   final TransactionType? initialType;
+  final bool isPersonalEntry;
 
   const AddTransactionModal({
     super.key,
     this.initialTransaction,
     this.initialType,
+    this.isPersonalEntry = false,
   });
 
   static Future<({bool isNew, bool isIncome, double amount})?> show(
     BuildContext context, {
     AppTransaction? initialTransaction,
     TransactionType? initialType,
+    bool isPersonalEntry = false,
   }) {
     return showModalBottomSheet<({bool isNew, bool isIncome, double amount})>(
       context: context,
@@ -33,6 +36,7 @@ class AddTransactionModal extends ConsumerStatefulWidget {
       builder: (_) => AddTransactionModal(
         initialTransaction: initialTransaction,
         initialType: initialType,
+        isPersonalEntry: isPersonalEntry,
       ),
     );
   }
@@ -47,7 +51,6 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
   final _descController = TextEditingController();
 
   late TransactionType _selectedType;
-  late String _selectedCategory;
   late PaymentMethod _selectedPaymentMethod;
   late DateTime _selectedDate;
   bool _isLoading = false;
@@ -60,14 +63,12 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
     final initial = widget.initialTransaction;
     if (initial != null) {
       _selectedType = initial.type;
-      _selectedCategory = initial.category;
       _selectedPaymentMethod = initial.paymentMethod;
       _selectedDate = initial.date;
       _amountController.text = initial.amount.toStringAsFixed(2).replaceAll('.', ',');
       _descController.text = initial.description;
     } else {
       _selectedType = widget.initialType ?? TransactionType.income;
-      _selectedCategory = TransactionCategories.forType(_selectedType).first;
       _selectedPaymentMethod = PaymentMethod.cash;
       _selectedDate = DateTime.now();
     }
@@ -84,10 +85,6 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
     if (_selectedType == newType) return;
     setState(() {
       _selectedType = newType;
-      final validCats = TransactionCategories.forType(newType);
-      if (!validCats.contains(_selectedCategory)) {
-        _selectedCategory = validCats.first;
-      }
     });
   }
 
@@ -102,26 +99,35 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
     try {
       final repo = ref.read(transactionRepositoryProvider);
       final desc = _descController.text.trim();
+      final defaultLabel = _selectedType == TransactionType.income ? 'Genel Gelir' : 'Genel Gider';
 
       if (_isEditing) {
         final updated = widget.initialTransaction!.copyWith(
           amount: parsedAmount,
           type: _selectedType,
-          category: _selectedCategory,
+          category: widget.initialTransaction!.category.isNotEmpty
+              ? widget.initialTransaction!.category
+              : defaultLabel,
           paymentMethod: _selectedPaymentMethod,
-          description: desc.isEmpty ? _selectedCategory : desc,
+          description: desc.isEmpty ? defaultLabel : desc,
           date: _selectedDate,
         );
         await repo.updateTransaction(widget.initialTransaction!.id!, updated);
       } else {
+        final finalCategory = widget.isPersonalEntry ? 'Personel Girişi' : defaultLabel;
+        final finalDesc = widget.isPersonalEntry
+            ? (desc.isEmpty ? '[Personel] $defaultLabel' : '[Personel] $desc')
+            : (desc.isEmpty ? defaultLabel : desc);
+
         final newTx = AppTransaction(
           amount: parsedAmount,
           type: _selectedType,
-          category: _selectedCategory,
+          category: finalCategory,
           paymentMethod: _selectedPaymentMethod,
-          description: desc.isEmpty ? _selectedCategory : desc,
+          description: finalDesc,
           date: _selectedDate,
           createdAt: DateTime.now(),
+          sourceType: widget.isPersonalEntry ? 'personal_entry' : null,
         );
         await repo.addTransaction(newTx);
       }
@@ -162,11 +168,6 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = TransactionCategories.forType(_selectedType);
-    if (!categories.contains(_selectedCategory)) {
-      categories.add(_selectedCategory);
-    }
-
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom > 0
         ? MediaQuery.of(context).viewInsets.bottom + 20
         : MediaQuery.of(context).viewPadding.bottom + 24;
@@ -258,58 +259,6 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
 
               // Tutar
               AmountField(controller: _amountController),
-              const SizedBox(height: 14),
-
-              // Kategori Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                dropdownColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.darkSurfaceElevated
-                    : AppTheme.pureWhite,
-                style: Theme.of(context).textTheme.bodyLarge,
-                decoration: const InputDecoration(
-                  labelText: 'Kategori',
-                  prefixIcon: Icon(Icons.category_outlined),
-                ),
-                items: categories
-                    .map((cat) => DropdownMenuItem(
-                          value: cat,
-                          child: Text(
-                            cat,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedCategory = val);
-                },
-              ),
-              const SizedBox(height: 14),
-
-              // Ödeme Yöntemi
-              DropdownButtonFormField<PaymentMethod>(
-                value: _selectedPaymentMethod,
-                dropdownColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.darkSurfaceElevated
-                    : AppTheme.pureWhite,
-                style: Theme.of(context).textTheme.bodyLarge,
-                decoration: const InputDecoration(
-                  labelText: 'Ödeme Yöntemi',
-                  prefixIcon: Icon(Icons.payments_outlined),
-                ),
-                items: PaymentMethod.values
-                    .map((m) => DropdownMenuItem(
-                          value: m,
-                          child: Text(
-                            m.displayName,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedPaymentMethod = val);
-                },
-              ),
               const SizedBox(height: 14),
 
               // Tarih

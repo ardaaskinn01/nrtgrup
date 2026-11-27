@@ -43,8 +43,58 @@ class CustomerRepository {
     await _collection.doc(id).update(customer.toFirestore(isNew: false));
   }
 
+  /// Müşteri avatarını Supabase Storage'a yükleyip Firestore'daki müşteri dokümanını günceller.
+  Future<Customer> updateCustomerAvatar({
+    required String customerId,
+    required Uint8List bytes,
+    required String fileName,
+    String? oldAvatarPath,
+  }) async {
+    // Varsa eski avatarı temizle
+    if (oldAvatarPath != null && oldAvatarPath.isNotEmpty) {
+      try {
+        await _storage.deleteWorkPhoto(oldAvatarPath);
+      } catch (_) {}
+    }
+
+    final uploaded = await _storage.uploadCustomerAvatar(
+      customerId: customerId,
+      bytes: bytes,
+      fileName: fileName,
+    );
+
+    await _collection.doc(customerId).update({
+      'avatarUrl': uploaded.publicUrl,
+      'avatarPath': uploaded.path,
+    });
+
+    final doc = await _collection.doc(customerId).get();
+    return Customer.fromFirestore(doc);
+  }
+
+  /// Müşterinin avatarını kaldırır.
+  Future<void> removeCustomerAvatar(String customerId, String avatarPath) async {
+    if (avatarPath.isNotEmpty) {
+      try {
+        await _storage.deleteWorkPhoto(avatarPath);
+      } catch (_) {}
+    }
+    await _collection.doc(customerId).update({
+      'avatarUrl': '',
+      'avatarPath': '',
+    });
+  }
+
   /// Müşteriyi, altındaki notları, fotoğraf kayıtlarını ve Supabase Storage'daki dosyaları siler.
   Future<void> deleteCustomer(String id) async {
+    final customerDoc = await _collection.doc(id).get();
+    final avatarPath = customerDoc.data()?['avatarPath'] as String?;
+    if (avatarPath != null && avatarPath.isNotEmpty) {
+      try {
+        await _storage.deleteWorkPhoto(avatarPath);
+      } catch (_) {}
+    }
+
     final photosSnap = await _photosCollection(id).get();
     final notesSnap = await _notesCollection(id).get();
 

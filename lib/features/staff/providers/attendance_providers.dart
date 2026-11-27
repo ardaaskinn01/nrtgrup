@@ -6,6 +6,10 @@ import '../repositories/attendance_repository.dart';
 
 final attendanceStreamProvider =
     StreamProvider.family<List<AttendanceRecord>, String>((ref, staffId) {
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) {
+    return const Stream.empty();
+  }
   return ref.watch(attendanceRepositoryProvider).watchAttendance(staffId);
 });
 

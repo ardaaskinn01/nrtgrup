@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/amount_field.dart';
@@ -38,7 +40,11 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
   final _wageController = TextEditingController();
   final _noteController = TextEditingController();
 
-  late PaymentPeriod _paymentType;
+  Uint8List? _selectedIdCardBytes;
+  String? _selectedIdCardFileName;
+  bool _removeExistingIdCard = false;
+
+  int _salaryDay = 1;
   bool _isLoading = false;
 
   bool get _isEditing => widget.initialStaff != null;
@@ -52,9 +58,9 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
       _phoneController.text = initial.phone;
       _wageController.text = initial.wage.toStringAsFixed(2).replaceAll('.', ',');
       _noteController.text = initial.note;
-      _paymentType = initial.paymentType;
+      _salaryDay = initial.salaryDay;
     } else {
-      _paymentType = PaymentPeriod.daily;
+      _salaryDay = 1;
     }
   }
 
@@ -65,6 +71,75 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
     _wageController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickIdCard(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 88,
+      );
+      if (picked == null) return;
+
+      final bytes = await picked.readAsBytes();
+      setState(() {
+        _selectedIdCardBytes = bytes;
+        _selectedIdCardFileName = picked.name;
+        _removeExistingIdCard = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kimlik fotoğrafı seçilemedi: $e')),
+        );
+      }
+    }
+  }
+
+  void _showIdCardSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined, color: AppTheme.primaryOrange),
+              title: const Text('Kamera ile Çek'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickIdCard(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: AppTheme.primaryOrange),
+              title: const Text('Galeriden Seç'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickIdCard(ImageSource.gallery);
+              },
+            ),
+            if (_selectedIdCardBytes != null ||
+                (widget.initialStaff?.idCardUrl.isNotEmpty ?? false))
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                title: const Text('Kimlik Fotoğrafını Kaldır', style: TextStyle(color: AppTheme.errorColor)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    _selectedIdCardBytes = null;
+                    _selectedIdCardFileName = null;
+                    _removeExistingIdCard = true;
+                  });
+                },
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -78,24 +153,47 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
     try {
       final repo = ref.read(staffRepositoryProvider);
       if (_isEditing) {
-        final updated = widget.initialStaff!.copyWith(
+        var updated = widget.initialStaff!.copyWith(
           fullName: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
-          paymentType: _paymentType,
           wage: wage,
+          salaryDay: _salaryDay,
           note: _noteController.text.trim(),
         );
+
+        if (_removeExistingIdCard && updated.idCardPath.isNotEmpty) {
+          await repo.removeStaffIdCard(widget.initialStaff!.id!, updated.idCardPath);
+          updated = updated.copyWith(idCardUrl: '', idCardPath: '');
+        }
+
         await repo.updateStaff(widget.initialStaff!.id!, updated);
+
+        if (_selectedIdCardBytes != null && _selectedIdCardFileName != null) {
+          await repo.updateStaffIdCard(
+            staffId: widget.initialStaff!.id!,
+            bytes: _selectedIdCardBytes!,
+            fileName: _selectedIdCardFileName!,
+            oldIdCardPath: updated.idCardPath.isNotEmpty ? updated.idCardPath : null,
+          );
+        }
       } else {
         final staff = StaffMember(
           fullName: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
-          paymentType: _paymentType,
           wage: wage,
+          salaryDay: _salaryDay,
           note: _noteController.text.trim(),
           createdAt: DateTime.now(),
         );
-        await repo.addStaff(staff);
+        final newId = await repo.addStaff(staff);
+
+        if (_selectedIdCardBytes != null && _selectedIdCardFileName != null) {
+          await repo.updateStaffIdCard(
+            staffId: newId,
+            bytes: _selectedIdCardBytes!,
+            fileName: _selectedIdCardFileName!,
+          );
+        }
       }
 
       if (mounted) {
@@ -127,6 +225,9 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
         ? MediaQuery.of(context).viewInsets.bottom + 20
         : MediaQuery.of(context).viewPadding.bottom + 24;
 
+    final initialIdCard = widget.initialStaff?.idCardUrl;
+    final hasExistingIdCard = !_removeExistingIdCard && (initialIdCard != null && initialIdCard.isNotEmpty);
+
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -153,9 +254,110 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
                 ),
               ),
               Text(
-                _isEditing ? 'Personel Düzenle' : 'Yeni Personel Ekle',
+                _isEditing ? 'Personeli Düzenle' : 'Yeni Personel Ekle',
                 style: Theme.of(context).textTheme.headlineMedium,
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+
+              // Kimlik Fotoğrafı Seçme / Önizleme Alanı
+              InkWell(
+                onTap: _showIdCardSourceActionSheet,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  width: double.infinity,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppTheme.primaryOrange.withValues(alpha: 0.4),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(13),
+                    child: _selectedIdCardBytes != null
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.memory(_selectedIdCardBytes!, fit: BoxFit.cover),
+                              Positioned(
+                                right: 8,
+                                bottom: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.edit, size: 12, color: Colors.white),
+                                      SizedBox(width: 4),
+                                      Text('Değiştir', style: TextStyle(color: Colors.white, fontSize: 11)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : (hasExistingIdCard
+                            ? Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.network(initialIdCard, fit: BoxFit.cover),
+                                  Positioned(
+                                    right: 8,
+                                    bottom: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black87,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.edit, size: 12, color: Colors.white),
+                                          SizedBox(width: 4),
+                                          Text('Değiştir', style: TextStyle(color: Colors.white, fontSize: 11)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.badge_outlined,
+                                    size: 34,
+                                    color: AppTheme.primaryOrange.withValues(alpha: 0.8),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Personel Kimlik Fotoğrafı Yükle',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Ön/arka kimlik veya vesikalık (İsteğe bağlı)',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              )),
+                  ),
+                ),
               ),
               const SizedBox(height: 18),
 
@@ -188,34 +390,32 @@ class _AddStaffModalState extends ConsumerState<AddStaffModal> {
               ),
               const SizedBox(height: 14),
 
-              DropdownButtonFormField<PaymentPeriod>(
-                value: _paymentType,
-                dropdownColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppTheme.darkSurfaceElevated
-                    : AppTheme.pureWhite,
-                style: Theme.of(context).textTheme.bodyLarge,
-                decoration: const InputDecoration(
-                  labelText: 'Ödeme Tipi',
-                  prefixIcon: Icon(Icons.calendar_view_week_outlined),
-                ),
-                items: PaymentPeriod.values
-                    .map((p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            p.displayName,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _paymentType = val);
-                },
+              AmountField(
+                controller: _wageController,
+                label: 'Aylık Maaş (TL)',
               ),
               const SizedBox(height: 14),
 
-              AmountField(
-                controller: _wageController,
-                label: 'Ücret Bilgisi (TL)',
+              // Maaş Günü Seçimi (Ayın kaçı)
+              DropdownButtonFormField<int>(
+                value: _salaryDay,
+                dropdownColor: Theme.of(context).colorScheme.surface,
+                decoration: const InputDecoration(
+                  labelText: 'Maaş Günü (Her Ayın Kaçında)',
+                  prefixIcon: Icon(Icons.event_repeat_outlined),
+                ),
+                items: List.generate(31, (index) => index + 1).map((day) {
+                  return DropdownMenuItem<int>(
+                    value: day,
+                    child: Text(
+                      'Her ayın $day. günü',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => _salaryDay = val);
+                },
               ),
               const SizedBox(height: 14),
 

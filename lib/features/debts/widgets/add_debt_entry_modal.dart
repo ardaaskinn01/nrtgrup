@@ -4,7 +4,10 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/amount_field.dart';
 import '../../../core/widgets/date_picker_field.dart';
+import '../../../models/cheque.dart';
 import '../../../models/debt.dart';
+import '../../../models/transaction.dart';
+import '../../transactions/repositories/cheque_repository.dart';
 import '../repositories/debt_repository.dart';
 
 class AddDebtEntryModal extends ConsumerStatefulWidget {
@@ -47,15 +50,15 @@ class _AddDebtEntryModalState extends ConsumerState<AddDebtEntryModal> {
   final _descController = TextEditingController();
 
   late DebtEntryType _entryType;
+  PaymentMethod _paymentMethod = PaymentMethod.cash;
+  Cheque? _selectedCheque;
   DateTime _selectedDate = DateTime.now();
-  bool _addToLedger = false;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _entryType = widget.initialType;
-    _addToLedger = _entryType == DebtEntryType.odeme;
   }
 
   @override
@@ -81,7 +84,11 @@ class _AddDebtEntryModalState extends ConsumerState<AddDebtEntryModal> {
             amount: amount,
             date: _selectedDate,
             description: _descController.text.trim(),
-            addToLedger: _addToLedger,
+            addToLedger: true,
+            paymentMethod: _entryType == DebtEntryType.odeme
+                ? _paymentMethod
+                : PaymentMethod.cash,
+            selectedChequeId: _selectedCheque?.id,
           );
 
       if (mounted) {
@@ -113,8 +120,6 @@ class _AddDebtEntryModalState extends ConsumerState<AddDebtEntryModal> {
 
   @override
   Widget build(BuildContext context) {
-    final isPayment = _entryType == DebtEntryType.odeme;
-
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom > 0
         ? MediaQuery.of(context).viewInsets.bottom + 20
         : MediaQuery.of(context).viewPadding.bottom + 24;
@@ -165,10 +170,114 @@ class _AddDebtEntryModalState extends ConsumerState<AddDebtEntryModal> {
                   ),
                 ],
                 selected: {_entryType},
-                onSelectionChanged: (sel) => setState(() => _entryType = sel.first),
+                onSelectionChanged: (sel) => setState(() {
+                  _entryType = sel.first;
+                  _paymentMethod = PaymentMethod.cash;
+                  _selectedCheque = null;
+                }),
                 showSelectedIcon: false,
               ),
               const SizedBox(height: 14),
+
+              if (_entryType == DebtEntryType.odeme) ...[
+                DropdownButtonFormField<PaymentMethod>(
+                  value: _paymentMethod,
+                  dropdownColor: Theme.of(context).colorScheme.surface,
+                  decoration: const InputDecoration(
+                    labelText: 'Ödeme Şekli',
+                    prefixIcon: Icon(Icons.payments_outlined),
+                  ),
+                  items: PaymentMethod.values.map((m) {
+                    return DropdownMenuItem(
+                      value: m,
+                      child: Text(
+                        m.displayName,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _paymentMethod = val;
+                        _selectedCheque = null;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 14),
+
+                if (_paymentMethod == PaymentMethod.checkNote)
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final chequesAsync = ref.watch(inHandChequesProvider);
+                      final cheques = chequesAsync.value ?? [];
+
+                      if (cheques.isEmpty) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.errorColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: const Text(
+                            'Kasada verilebilecek aktif çek bulunmuyor.',
+                            style: TextStyle(
+                              color: AppTheme.errorColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: DropdownButtonFormField<Cheque>(
+                          value: _selectedCheque,
+                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          decoration: const InputDecoration(
+                            labelText: 'Kasadan Verilecek Çeki Seçin',
+                            prefixIcon: Icon(Icons.receipt_long_outlined),
+                          ),
+                          items: cheques.map((c) {
+                            final src = c.sourceName.isNotEmpty ? ' • ${c.sourceName}' : '';
+                            return DropdownMenuItem<Cheque>(
+                              value: c,
+                              child: Text(
+                                '${AppFormatters.formatCurrency(c.amount)}$src',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          validator: (val) {
+                            if (_paymentMethod == PaymentMethod.checkNote && val == null) {
+                              return 'Lütfen kasadan bir çek seçin';
+                            }
+                            return null;
+                          },
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedCheque = val;
+                              if (val != null) {
+                                _amountController.text =
+                                    val.amount.toStringAsFixed(2).replaceAll('.', ',');
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+              ],
 
               AmountField(controller: _amountController),
               const SizedBox(height: 14),
@@ -186,24 +295,6 @@ class _AddDebtEntryModalState extends ConsumerState<AddDebtEntryModal> {
                   labelText: 'Açıklama (Opsiyonel)',
                   hintText: 'Örn: Malzeme borcu, kısmi ödeme...',
                   prefixIcon: Icon(Icons.notes_outlined),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              CheckboxListTile(
-                value: _addToLedger,
-                onChanged: (val) => setState(() => _addToLedger = val ?? false),
-                activeColor: AppTheme.primaryOrange,
-                contentPadding: EdgeInsets.zero,
-                title: const Text(
-                  'Gelir gidere de eklensin mi?',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                subtitle: Text(
-                  isPayment
-                      ? 'İşaretliyse Gelir Gider kasasına GİDER olarak işlenir.'
-                      : 'İşaretliyse kasaya giren para olarak GELİR işlenir.',
-                  style: const TextStyle(fontSize: 12),
                 ),
               ),
 

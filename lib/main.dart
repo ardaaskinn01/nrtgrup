@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants/app_constants.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
@@ -59,6 +60,13 @@ void main() async {
 
   // SharedPreferences başlatma
   final prefs = await SharedPreferences.getInstance();
+
+  // Lokal bildirim servisini başlat
+  try {
+    await NotificationService.instance.init();
+  } catch (e) {
+    debugPrint('Bildirim servisi uyarısı: $e');
+  }
 
   runApp(
     ProviderScope(

@@ -172,11 +172,12 @@ class SurfaceCard extends StatelessWidget {
   }
 }
 
-/// Yuvarlatılmış kare ikon / monogram rozeti.
+/// Yuvarlatılmış kare ikon / monogram / avatar rozeti.
 class IconSquircle extends StatelessWidget {
   final Color color;
   final IconData? icon;
   final String? text;
+  final String? imageUrl;
   final double size;
 
   const IconSquircle({
@@ -184,12 +185,47 @@ class IconSquircle extends StatelessWidget {
     required this.color,
     this.icon,
     this.text,
+    this.imageUrl,
     this.size = 46,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: color.withValues(alpha: isDark ? 0.42 : 0.28),
+            width: 1.1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: Image.network(
+            imageUrl!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+              alignment: Alignment.center,
+              child: Text(
+                text ?? '',
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                  fontSize: size * 0.4,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: size,
       height: size,

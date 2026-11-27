@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/amount_field.dart';
 import '../../../core/widgets/date_picker_field.dart';
 import '../../../models/receivable.dart';
+import '../../../models/transaction.dart';
 import '../providers/receivable_providers.dart';
 import '../repositories/receivable_repository.dart';
 
@@ -52,8 +53,8 @@ class _AddReceivableEntryModalState
   final _descController = TextEditingController();
 
   late ReceivableEntryType _entryType;
+  PaymentMethod _paymentMethod = PaymentMethod.cash;
   DateTime _selectedDate = DateTime.now();
-  bool _addToIncome = true;
   bool _isNewPerson = false;
   String? _selectedPersonId;
   bool _isLoading = false;
@@ -111,7 +112,10 @@ class _AddReceivableEntryModalState
         amount: amount,
         date: _selectedDate,
         description: _descController.text.trim(),
-        addToIncome: _entryType == ReceivableEntryType.tahsilat && _addToIncome,
+        addToIncome: _entryType == ReceivableEntryType.tahsilat,
+        paymentMethod: _entryType == ReceivableEntryType.tahsilat
+            ? _paymentMethod
+            : PaymentMethod.cash,
       );
 
       if (mounted) {
@@ -282,6 +286,30 @@ class _AddReceivableEntryModalState
               AmountField(controller: _amountController),
               const SizedBox(height: 14),
 
+              if (_entryType == ReceivableEntryType.tahsilat) ...[
+                DropdownButtonFormField<PaymentMethod>(
+                  value: _paymentMethod,
+                  dropdownColor: Theme.of(context).colorScheme.surface,
+                  decoration: const InputDecoration(
+                    labelText: 'Tahsilat Şekli',
+                    prefixIcon: Icon(Icons.payments_outlined),
+                  ),
+                  items: PaymentMethod.values.map((m) {
+                    return DropdownMenuItem(
+                      value: m,
+                      child: Text(
+                        m.displayName,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setState(() => _paymentMethod = val);
+                  },
+                ),
+                const SizedBox(height: 14),
+              ],
+
               DatePickerField(
                 selectedDate: _selectedDate,
                 onDateSelected: (d) => setState(() => _selectedDate = d),
@@ -297,24 +325,6 @@ class _AddReceivableEntryModalState
                   prefixIcon: Icon(Icons.notes_outlined),
                 ),
               ),
-
-              if (_entryType == ReceivableEntryType.tahsilat) ...[
-                const SizedBox(height: 10),
-                CheckboxListTile(
-                  value: _addToIncome,
-                  onChanged: (val) => setState(() => _addToIncome = val ?? true),
-                  activeColor: AppTheme.primaryOrange,
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text(
-                    'Gelir gidere de eklensin mi?',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                  ),
-                  subtitle: const Text(
-                    'İşaretliyse bu tahsilat Gelir Gider kasasına gelir olarak işlenir.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ],
 
               const SizedBox(height: 18),
 

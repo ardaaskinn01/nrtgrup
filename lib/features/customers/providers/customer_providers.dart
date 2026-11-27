@@ -1,8 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/firebase_providers.dart';
 import '../../../models/customer.dart';
 import '../repositories/customer_repository.dart';
 
 final customersStreamProvider = StreamProvider<List<Customer>>((ref) {
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) {
+    return const Stream.empty();
+  }
   return ref.watch(customerRepositoryProvider).watchCustomers();
 });
 

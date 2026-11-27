@@ -19,9 +19,7 @@ enum TransactionType {
 
 enum PaymentMethod {
   cash('cash', 'Nakit'),
-  creditCard('credit_card', 'Kredi Kartı'),
-  bankTransfer('bank_transfer', 'Havale / EFT'),
-  checkNote('check_note', 'Çek / Senet');
+  checkNote('check_note', 'Çek');
 
   final String value;
   final String displayName;
@@ -29,10 +27,10 @@ enum PaymentMethod {
   const PaymentMethod(this.value, this.displayName);
 
   static PaymentMethod fromString(String? value) {
-    return PaymentMethod.values.firstWhere(
-      (e) => e.value == value,
-      orElse: () => PaymentMethod.cash,
-    );
+    if (value == 'check_note' || value == 'check') {
+      return PaymentMethod.checkNote;
+    }
+    return PaymentMethod.cash;
   }
 }
 

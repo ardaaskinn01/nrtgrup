@@ -177,6 +177,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                         children: [
                           IconSquircle(
                             color: AppTheme.primaryOrangeLight,
+                            imageUrl: customer.avatarUrl.isNotEmpty ? customer.avatarUrl : null,
                             text: customer.name.isNotEmpty ? customer.name[0].toUpperCase() : 'M',
                             size: 48,
                           ),

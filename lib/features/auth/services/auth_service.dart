@@ -96,8 +96,8 @@ class AuthService {
             email.toLowerCase().startsWith('yönetici');
         await docRef.set({
           'email': email,
-          'displayName': isAdmin ? 'Yönetici' : (user.displayName ?? 'Kullanıcı'),
-          'role': isAdmin ? 'admin' : 'user',
+          'displayName': isAdmin ? 'Yönetici' : (user.displayName ?? 'Personel'),
+          'role': isAdmin ? 'admin' : 'personal',
           'lastLogin': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
         });
@@ -130,6 +130,12 @@ class AuthService {
       debugPrint('AuthService isAdmin hatası: $e');
     }
     return false;
+  }
+
+  /// Kullanıcının rolünü döndürür ('admin' veya 'personal')
+  Future<String> getUserRole() async {
+    final admin = await isAdmin();
+    return admin ? 'admin' : 'personal';
   }
 
   // Çıkış yap

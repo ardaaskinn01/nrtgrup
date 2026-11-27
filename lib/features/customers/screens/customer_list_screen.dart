@@ -153,6 +153,7 @@ class _CustomerCard extends StatelessWidget {
             children: [
               IconSquircle(
                 color: orange,
+                imageUrl: customer.avatarUrl.isNotEmpty ? customer.avatarUrl : null,
                 text: customer.name.isNotEmpty ? customer.name[0].toUpperCase() : 'M',
                 size: 46,
               ),

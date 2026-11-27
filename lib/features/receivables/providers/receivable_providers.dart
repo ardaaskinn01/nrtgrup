@@ -1,8 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/firebase_providers.dart';
 import '../../../models/receivable.dart';
 import '../repositories/receivable_repository.dart';
 
 final receivablesStreamProvider = StreamProvider<List<ReceivablePerson>>((ref) {
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) {
+    return const Stream.empty();
+  }
   return ref.watch(receivableRepositoryProvider).watchReceivables();
 });
 

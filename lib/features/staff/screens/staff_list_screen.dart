@@ -150,6 +150,7 @@ class _StaffCard extends StatelessWidget {
         children: [
           IconSquircle(
             color: orange,
+            imageUrl: staff.idCardUrl.isNotEmpty ? staff.idCardUrl : null,
             text: staff.fullName.isNotEmpty ? staff.fullName[0].toUpperCase() : 'P',
             size: 46,
           ),
@@ -170,7 +171,7 @@ class _StaffCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     StatusPill(
-                      label: staff.paymentType.displayName,
+                      label: 'Maaş Günü: ${staff.salaryDay}',
                       color: orange,
                     ),
                   ],
@@ -187,7 +188,7 @@ class _StaffCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      ' / ${staff.paymentType.displayName.toLowerCase()}',
+                      ' / aylık',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: AdaptiveColors.subText(context),

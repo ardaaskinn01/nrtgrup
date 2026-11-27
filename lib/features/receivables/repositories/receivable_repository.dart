@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/firebase_providers.dart';
+import '../../../models/cheque.dart';
 import '../../../models/receivable.dart';
 import '../../../models/transaction.dart';
 
@@ -17,6 +18,9 @@ class ReceivableRepository {
 
   CollectionReference<Map<String, dynamic>> get _transactionsCollection =>
       _firestore.collection('transactions');
+
+  CollectionReference<Map<String, dynamic>> get _chequesCollection =>
+      _firestore.collection('cheques');
 
   Stream<List<ReceivablePerson>> watchReceivables() {
     return _peopleCollection
@@ -82,6 +86,7 @@ class ReceivableRepository {
     required DateTime date,
     required String description,
     required bool addToIncome,
+    PaymentMethod paymentMethod = PaymentMethod.cash,
   }) async {
     String? linkedTxId;
     final shouldAddIncome = type == ReceivableEntryType.tahsilat && addToIncome;
@@ -89,14 +94,15 @@ class ReceivableRepository {
     final entryRef = _entriesCollection(personId).doc();
 
     if (shouldAddIncome) {
+      final methodTag = paymentMethod == PaymentMethod.checkNote ? ' [Çek]' : '';
       final txDesc = description.isNotEmpty
-          ? '$personName - $description'
-          : '$personName (Alacak Tahsilatı)';
+          ? '$personName - $description$methodTag'
+          : '$personName (Alacak Tahsilatı)$methodTag';
       final tx = AppTransaction(
         amount: amount,
         type: TransactionType.income,
         category: 'Alacak Tahsilatı',
-        paymentMethod: PaymentMethod.cash,
+        paymentMethod: paymentMethod,
         description: txDesc,
         date: date,
         createdAt: DateTime.now(),
@@ -106,6 +112,20 @@ class ReceivableRepository {
       );
       final txDoc = await _transactionsCollection.add(tx.toFirestore(isNew: true));
       linkedTxId = txDoc.id;
+
+      // Eğer tahsilat Çek ile yapıldıysa Çek Portföyüne (cheques) ekle
+      if (paymentMethod == PaymentMethod.checkNote) {
+        await _chequesCollection.add(
+          Cheque(
+            amount: amount,
+            sourceName: personName,
+            note: description,
+            status: ChequeStatus.inHand,
+            date: date,
+            createdAt: DateTime.now(),
+          ).toFirestore(isNew: true),
+        );
+      }
     }
 
     final entry = ReceivableEntry(

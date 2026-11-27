@@ -1,11 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/firebase_providers.dart';
 import '../../../models/transaction.dart';
+import '../repositories/cheque_repository.dart';
 import '../repositories/transaction_repository.dart';
 
 enum TransactionFilterPeriod { all, daily, monthly, yearly }
 
 /// Tüm işlemlerin canlı Firestore stream'i
+/// Kullanıcı oturumu açık ve hazır olana kadar bekleterek PERMISSION_DENIED hatasını önler.
 final transactionsStreamProvider = StreamProvider<List<AppTransaction>>((ref) {
+  final authUser = ref.watch(authStateChangesProvider).value;
+  if (authUser == null) {
+    return const Stream.empty();
+  }
   final repository = ref.watch(transactionRepositoryProvider);
   return repository.watchTransactions();
 });
@@ -55,6 +62,9 @@ class BalanceSummary {
   final double totalIncome;
   final double totalExpense;
   final double netBalance;
+  final double cashBalance;
+  final double chequeBalance;
+  final int chequeCount;
   final double monthIncome;
   final double monthExpense;
   final double todayIncome;
@@ -66,6 +76,9 @@ class BalanceSummary {
     this.totalIncome = 0,
     this.totalExpense = 0,
     this.netBalance = 0,
+    this.cashBalance = 0,
+    this.chequeBalance = 0,
+    this.chequeCount = 0,
     this.monthIncome = 0,
     this.monthExpense = 0,
     this.todayIncome = 0,
@@ -75,9 +88,10 @@ class BalanceSummary {
   });
 }
 
-/// Ana Panel için genel, aylık ve bugünkü bakiye özeti
+/// Ana Panel için genel, aylık ve bugünkü bakiye özeti (Nakit + Çek dağılımı dahil)
 final overallBalanceProvider = Provider<AsyncValue<BalanceSummary>>((ref) {
   final transactionsAsync = ref.watch(transactionsStreamProvider);
+  final inHandCheques = ref.watch(inHandChequesProvider).value ?? [];
   final now = DateTime.now();
 
   return transactionsAsync.whenData((list) {
@@ -111,10 +125,17 @@ final overallBalanceProvider = Provider<AsyncValue<BalanceSummary>>((ref) {
       }
     }
 
+    final netBalance = totalIncome - totalExpense;
+    final chequeBalance = inHandCheques.fold<double>(0.0, (sum, c) => sum + c.amount);
+    final cashBalance = netBalance - chequeBalance;
+
     return BalanceSummary(
       totalIncome: totalIncome,
       totalExpense: totalExpense,
-      netBalance: totalIncome - totalExpense,
+      netBalance: netBalance,
+      cashBalance: cashBalance,
+      chequeBalance: chequeBalance,
+      chequeCount: inHandCheques.length,
       monthIncome: monthIncome,
       monthExpense: monthExpense,
       todayIncome: todayIncome,

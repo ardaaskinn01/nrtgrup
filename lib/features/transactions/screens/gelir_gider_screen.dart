@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/modern_cards.dart';
-import '../../../core/widgets/mood_burst.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
 import '../../../models/transaction.dart';
 import '../providers/transaction_providers.dart';
 import '../repositories/transaction_repository.dart';
 import '../widgets/add_transaction_modal.dart';
+import '../widgets/cash_offset_modal.dart';
 
 class GelirGiderScreen extends ConsumerWidget {
   const GelirGiderScreen({super.key});
@@ -38,23 +37,15 @@ class GelirGiderScreen extends ConsumerWidget {
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
-        actions: const [
-          ThemeToggleButton(),
-          SizedBox(width: 8),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.balance_rounded),
+            tooltip: 'Kasa Eşitle (Offset)',
+            onPressed: () => CashOffsetModal.show(context),
+          ),
+          const ThemeToggleButton(),
+          const SizedBox(width: 8),
         ],
-      ),
-      floatingActionButton: AppFab(
-        label: 'İşlem Ekle',
-        onPressed: () async {
-          final result = await AddTransactionModal.show(context);
-          if (result != null && result.isNew && context.mounted) {
-            MoodBurst.show(
-              context,
-              amount: result.amount,
-              isIncome: result.isIncome,
-            );
-          }
-        },
       ),
       body: Column(
         children: [
