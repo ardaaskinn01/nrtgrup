@@ -5,7 +5,9 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/amount_field.dart';
 import '../../../core/widgets/date_picker_field.dart';
 import '../../../core/widgets/modal_header.dart';
+import '../../../models/cheque.dart';
 import '../../../models/transaction.dart';
+import '../repositories/cheque_repository.dart';
 import '../repositories/transaction_repository.dart';
 
 class AddTransactionModal extends ConsumerStatefulWidget {
@@ -54,6 +56,7 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
   late TransactionType _selectedType;
   late PaymentMethod _selectedPaymentMethod;
   late DateTime _selectedDate;
+  Cheque? _selectedCheque;
   bool _isLoading = false;
 
   bool get _isEditing => widget.initialTransaction != null;
@@ -86,6 +89,7 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
     if (_selectedType == newType) return;
     setState(() {
       _selectedType = newType;
+      _selectedCheque = null;
     });
   }
 
@@ -131,6 +135,24 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
           sourceType: widget.isPersonalEntry ? 'personal_entry' : null,
         );
         await repo.addTransaction(newTx);
+
+        if (_selectedPaymentMethod == PaymentMethod.checkNote) {
+          final chequeRepo = ref.read(chequeRepositoryProvider);
+          if (_selectedType == TransactionType.income) {
+            await chequeRepo.addCheque(
+              Cheque(
+                amount: parsedAmount,
+                sourceName: finalDesc,
+                note: 'Gelir işlemi ile eklendi',
+                status: ChequeStatus.inHand,
+                date: _selectedDate,
+                createdAt: DateTime.now(),
+              ),
+            );
+          } else if (_selectedCheque?.id != null) {
+            await chequeRepo.markChequeGiven(_selectedCheque!.id!, finalDesc);
+          }
+        }
       }
 
       if (mounted) {
@@ -249,6 +271,83 @@ class _AddTransactionModalState extends ConsumerState<AddTransactionModal> {
               // Tutar
               AmountField(controller: _amountController),
               const SizedBox(height: 14),
+
+              // Ödeme Yöntemi (Nakit / Çek) - Sadece Yönetici Yeni İşlemde
+              if (!widget.isPersonalEntry && !_isEditing) ...[
+                SegmentedButton<PaymentMethod>(
+                  segments: const [
+                    ButtonSegment(
+                      value: PaymentMethod.cash,
+                      label: Text('Nakit'),
+                      icon: Icon(Icons.payments_outlined),
+                    ),
+                    ButtonSegment(
+                      value: PaymentMethod.checkNote,
+                      label: Text('Çek'),
+                      icon: Icon(Icons.receipt_long_outlined),
+                    ),
+                  ],
+                  selected: {_selectedPaymentMethod},
+                  onSelectionChanged: (sel) {
+                    setState(() {
+                      _selectedPaymentMethod = sel.first;
+                      _selectedCheque = null;
+                    });
+                  },
+                  showSelectedIcon: false,
+                ),
+                const SizedBox(height: 14),
+                if (_selectedPaymentMethod == PaymentMethod.checkNote &&
+                    _selectedType == TransactionType.expense) ...[
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final chequesAsync = ref.watch(inHandChequesProvider);
+                      final inHand = chequesAsync.value ?? [];
+                      if (inHand.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Kasada verilecek çek bulunmuyor. Gider nakit veya manuel işlenecek.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.errorColor.withValues(alpha: 0.9),
+                            ),
+                          ),
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: DropdownButtonFormField<Cheque>(
+                          value: _selectedCheque,
+                          isExpanded: true,
+                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          decoration: const InputDecoration(
+                            labelText: 'Verilecek Çeki Seçin (Opsiyonel)',
+                            prefixIcon: Icon(Icons.receipt_long_outlined),
+                          ),
+                          items: inHand.map((c) {
+                            final label =
+                                '${AppFormatters.formatCurrency(c.amount)} (${c.sourceName.isNotEmpty ? c.sourceName : 'Kasa'})';
+                            return DropdownMenuItem(
+                              value: c,
+                              child: Text(label, overflow: TextOverflow.ellipsis),
+                            );
+                          }).toList(),
+                          onChanged: (c) {
+                            setState(() {
+                              _selectedCheque = c;
+                              if (c != null) {
+                                _amountController.text =
+                                    c.amount.toStringAsFixed(2).replaceAll('.', ',');
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
 
               // Tarih
               DatePickerField(

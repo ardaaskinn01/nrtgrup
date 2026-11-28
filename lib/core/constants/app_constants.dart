@@ -28,6 +28,7 @@ class AppConstants {
   static const String loginRoute = '/login';
   static const String dashboardRoute = '/dashboard';
   static const String cashDetailRoute = '/kasa-detay';
+  static const String ceklerimRoute = '/ceklerim';
   static const String personalHomeRoute = '/personal-home';
   static const String gelirGiderRoute = '/gelir-gider';
   static const String alacaklarRoute = '/alacaklar';

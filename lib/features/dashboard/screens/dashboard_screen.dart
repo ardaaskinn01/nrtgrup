@@ -19,8 +19,10 @@ import '../../receivables/widgets/add_receivable_entry_modal.dart';
 import '../../staff/providers/attendance_providers.dart';
 import '../../todos/providers/todo_providers.dart';
 import '../../transactions/providers/transaction_providers.dart';
+import '../../transactions/repositories/cheque_repository.dart';
 import '../../transactions/widgets/add_transaction_modal.dart';
 import '../../transactions/widgets/cash_offset_modal.dart';
+import '../../../models/cheque.dart';
 import '../../../models/transaction.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -36,6 +38,7 @@ class DashboardScreen extends ConsumerWidget {
     final totalDebtsAsync = ref.watch(totalDebtsProvider);
     final todayStaffCountAsync = ref.watch(todayCheckedInStaffCountProvider);
     final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final inHandCheques = ref.watch(inHandChequesProvider).value ?? [];
     final upcomingTodosAsync = ref.watch(upcomingDashboardTodosProvider);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
@@ -483,6 +486,10 @@ class DashboardScreen extends ConsumerWidget {
                           icon: Icons.groups_outlined,
                           color: AdaptiveColors.orange(context),
                           onTap: () => context.push(AppConstants.musterilerRoute),
+                        ),
+                        _ChequesBentoCard(
+                          cheques: inHandCheques,
+                          onTap: () => context.push(AppConstants.ceklerimRoute),
                         ),
                       ],
                     );
@@ -935,6 +942,111 @@ class _QuickActionTile extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ChequesBentoCard extends StatelessWidget {
+  final List<Cheque> cheques;
+  final VoidCallback onTap;
+
+  const _ChequesBentoCard({
+    required this.cheques,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final color = AdaptiveColors.orange(context);
+    final total = cheques.fold<double>(0.0, (s, c) => s + c.amount);
+
+    final displayCount = cheques.length > 2 ? 2 : cheques.length;
+    final hasMore = cheques.length > 2;
+
+    return SurfaceCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.20 : 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(Icons.receipt_long_rounded, size: 16, color: color),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Çekler (${cheques.length})',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AdaptiveColors.subText(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  AppFormatters.formatCurrency(total),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 3),
+              if (cheques.isEmpty)
+                Text(
+                  'Kasada çek yok',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AdaptiveColors.subText(context),
+                    fontSize: 10.5,
+                  ),
+                )
+              else ...[
+                for (int i = 0; i < displayCount; i++)
+                  Text(
+                    '• ${AppFormatters.formatCurrency(cheques[i].amount)}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AdaptiveColors.subText(context),
+                      fontSize: 10.5,
+                      height: 1.25,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (hasMore)
+                  Text(
+                    '• ... (+${cheques.length - 2} çek)',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 10.5,
+                      height: 1.25,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }

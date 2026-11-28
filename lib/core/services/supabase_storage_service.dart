@@ -85,6 +85,31 @@ class SupabaseStorageService {
     return (path: storagePath, publicUrl: publicUrl);
   }
 
+  /// Çek fotoğrafını Supabase Storage'a yükler.
+  /// Geriye storage path'i ve public URL'ini döner.
+  Future<({String path, String publicUrl})> uploadChequeImage({
+    required String chequeId,
+    required Uint8List bytes,
+    required String fileName,
+    String contentType = 'image/jpeg',
+  }) async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final sanitizedName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+    final storagePath = 'cheques/$chequeId/${timestamp}_$sanitizedName';
+
+    await _client.storage.from(_bucket).uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: FileOptions(
+            contentType: contentType,
+            upsert: false,
+          ),
+        );
+
+    final publicUrl = getPublicUrl(storagePath);
+    return (path: storagePath, publicUrl: publicUrl);
+  }
+
   /// Storage path'inden public URL döner.
   String getPublicUrl(String path) {
     return _client.storage.from(_bucket).getPublicUrl(path);

@@ -25,6 +25,8 @@ class Cheque {
   final String? givenToName;
   final String note;
   final ChequeStatus status;
+  final String? imageUrl;
+  final String? imagePath;
   final DateTime date;
   final DateTime createdAt;
 
@@ -35,11 +37,14 @@ class Cheque {
     this.givenToName,
     this.note = '',
     this.status = ChequeStatus.inHand,
+    this.imageUrl,
+    this.imagePath,
     required this.date,
     required this.createdAt,
   });
 
   bool get isInHand => status == ChequeStatus.inHand;
+  bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
 
   factory Cheque.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
@@ -56,6 +61,8 @@ class Cheque {
       givenToName: data['givenToName'] as String?,
       note: data['note'] as String? ?? '',
       status: ChequeStatus.fromString(data['status'] as String?),
+      imageUrl: data['imageUrl'] as String?,
+      imagePath: data['imagePath'] as String?,
       date: parseDate(data['date'] ?? data['createdAt']),
       createdAt: parseDate(data['createdAt']),
     );
@@ -68,8 +75,38 @@ class Cheque {
       'givenToName': givenToName,
       'note': note,
       'status': status.value,
+      'imageUrl': imageUrl,
+      'imagePath': imagePath,
       'date': Timestamp.fromDate(date),
       'createdAt': isNew ? FieldValue.serverTimestamp() : Timestamp.fromDate(createdAt),
     };
+  }
+
+  Cheque copyWith({
+    String? id,
+    double? amount,
+    String? sourceName,
+    String? givenToName,
+    bool clearGivenToName = false,
+    String? note,
+    ChequeStatus? status,
+    String? imageUrl,
+    String? imagePath,
+    bool clearImage = false,
+    DateTime? date,
+    DateTime? createdAt,
+  }) {
+    return Cheque(
+      id: id ?? this.id,
+      amount: amount ?? this.amount,
+      sourceName: sourceName ?? this.sourceName,
+      givenToName: clearGivenToName ? null : (givenToName ?? this.givenToName),
+      note: note ?? this.note,
+      status: status ?? this.status,
+      imageUrl: clearImage ? null : (imageUrl ?? this.imageUrl),
+      imagePath: clearImage ? null : (imagePath ?? this.imagePath),
+      date: date ?? this.date,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 }

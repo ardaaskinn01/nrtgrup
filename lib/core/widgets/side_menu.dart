@@ -136,6 +136,12 @@ class SideMenu extends ConsumerWidget {
                     onTap: () => _navigate(context, AppConstants.gelirGiderRoute),
                   ),
                   _MenuItem(
+                    icon: Icons.receipt_long_rounded,
+                    title: 'Çeklerimiz',
+                    isActive: currentLocation == AppConstants.ceklerimRoute,
+                    onTap: () => _navigate(context, AppConstants.ceklerimRoute),
+                  ),
+                  _MenuItem(
                     icon: Icons.call_received_rounded,
                     title: 'Alacaklar',
                     isActive: currentLocation == AppConstants.alacaklarRoute,

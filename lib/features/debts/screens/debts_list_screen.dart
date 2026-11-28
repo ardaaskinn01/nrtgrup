@@ -175,11 +175,41 @@ class DebtsListScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  person.name,
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        person.name,
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (person.isSupplier) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.primaryOrange.withValues(alpha: 0.14),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: AppTheme.primaryOrange.withValues(alpha: 0.4),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Tedarikçi',
+                                          style: TextStyle(
+                                            color: AppTheme.primaryOrange,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 const SizedBox(height: 4),
                                 if (person.phone.isNotEmpty)

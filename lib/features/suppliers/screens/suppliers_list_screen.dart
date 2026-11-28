@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_fab.dart';
 import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/side_menu.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
+import '../../../models/debt.dart';
 import '../../../models/supplier.dart';
+import '../../debts/providers/debt_providers.dart';
+import '../../debts/widgets/add_debt_person_modal.dart';
 import '../providers/supplier_providers.dart';
 import '../repositories/supplier_repository.dart';
 import '../widgets/add_supplier_modal.dart';
@@ -21,6 +27,10 @@ class SuppliersListScreen extends ConsumerWidget {
     final isDesktop = MediaQuery.of(context).size.width > 900;
     final suppliersAsync = ref.watch(filteredSuppliersProvider);
     final selectedCategory = ref.watch(supplierCategoryFilterProvider);
+    final allDebts = ref.watch(debtsStreamProvider).value ?? [];
+    final totalSupplierDebt = allDebts
+        .where((d) => d.isSupplier)
+        .fold<double>(0.0, (sum, d) => sum + d.balance);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Scaffold(
@@ -46,8 +56,49 @@ class SuppliersListScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          // Toplam Tedarikçi Borcu Özeti
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: HeroGradientCard(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TOPLAM TEDARİKÇİ BORCU',
+                        style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.7,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Borçlar defteriyle senkronize',
+                        style: TextStyle(color: Colors.white54, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    AppFormatters.formatCurrency(totalSupplierDebt),
+                    style: TextStyle(
+                      color: totalSupplierDebt > 0
+                          ? const Color(0xFFF87171)
+                          : const Color(0xFF4ADE80),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: SearchFieldBar(
               hintText: 'Tedarikçi ara (firma adı, tür, telefon)...',
               onChanged: (val) => ref.read(supplierSearchQueryProvider.notifier).state = val,
@@ -108,10 +159,27 @@ class SuppliersListScreen extends ConsumerWidget {
                   itemCount: suppliers.length,
                   itemBuilder: (context, index) {
                     final supplier = suppliers[index];
+                    final linkedDebts = allDebts
+                        .where((d) => d.supplierId == supplier.id)
+                        .toList();
+                    final supplierDebt = linkedDebts.fold<double>(
+                      0.0,
+                      (sum, d) => sum + d.balance,
+                    );
+                    final primaryDebt = linkedDebts.isNotEmpty ? linkedDebts.first : null;
                     return _SupplierCard(
                       supplier: supplier,
+                      debtAmount: supplierDebt,
+                      linkedDebt: primaryDebt,
                       onEdit: () => AddSupplierModal.show(context, initialSupplier: supplier),
                       onDelete: () => _deleteSupplier(context, ref, supplier),
+                      onDebtTap: () {
+                        if (primaryDebt?.id != null) {
+                          context.push('${AppConstants.borclarRoute}/${primaryDebt!.id}');
+                        } else {
+                          AddDebtPersonModal.show(context, initialSupplier: supplier);
+                        }
+                      },
                     );
                   },
                 );
@@ -155,13 +223,19 @@ class SuppliersListScreen extends ConsumerWidget {
 
 class _SupplierCard extends StatelessWidget {
   final Supplier supplier;
+  final double debtAmount;
+  final DebtPerson? linkedDebt;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onDebtTap;
 
   const _SupplierCard({
     required this.supplier,
+    required this.debtAmount,
+    required this.linkedDebt,
     required this.onEdit,
     required this.onDelete,
+    required this.onDebtTap,
   });
 
   Color _categoryColor(BuildContext context, SupplierCategory cat) {
@@ -307,6 +381,57 @@ class _SupplierCard extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: onDebtTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: (debtAmount > 0
+                        ? AdaptiveColors.error(context)
+                        : AdaptiveColors.success(context))
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: (debtAmount > 0
+                          ? AdaptiveColors.error(context)
+                          : AdaptiveColors.success(context))
+                      .withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.credit_card_outlined,
+                    size: 15,
+                    color: debtAmount > 0
+                        ? AdaptiveColors.error(context)
+                        : AdaptiveColors.success(context),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      linkedDebt != null
+                          ? 'Güncel Borç: ${AppFormatters.formatCurrency(debtAmount)}'
+                          : 'Borç kaydı yok (Eklemek için dokunun)',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: debtAmount > 0
+                            ? AdaptiveColors.error(context)
+                            : AdaptiveColors.success(context),
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: AdaptiveColors.subText(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

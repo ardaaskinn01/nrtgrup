@@ -20,6 +20,7 @@ import '../../features/stock/screens/stock_list_screen.dart';
 import '../../features/suppliers/screens/suppliers_list_screen.dart';
 import '../../features/todos/screens/todos_list_screen.dart';
 import '../../features/transactions/screens/cash_detail_screen.dart';
+import '../../features/transactions/screens/cheques_screen.dart';
 import '../../features/transactions/screens/gelir_gider_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -89,6 +90,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppConstants.cashDetailRoute,
             builder: (context, state) => const CashDetailScreen(),
+          ),
+          GoRoute(
+            path: AppConstants.ceklerimRoute,
+            builder: (context, state) => const ChequesScreen(),
           ),
           GoRoute(
             path: AppConstants.gelirGiderRoute,

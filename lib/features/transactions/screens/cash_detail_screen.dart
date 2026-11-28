@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/supabase_storage_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/confirm_delete_dialog.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/modern_cards.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
@@ -10,6 +12,7 @@ import '../../debts/providers/debt_providers.dart';
 import '../../receivables/providers/receivable_providers.dart';
 import '../providers/transaction_providers.dart';
 import '../repositories/cheque_repository.dart';
+import '../widgets/add_cheque_modal.dart';
 import '../widgets/cash_offset_modal.dart';
 
 class CashDetailScreen extends ConsumerWidget {
@@ -291,7 +294,11 @@ class CashDetailScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      ...inHand.map((c) => _ChequeCard(cheque: c)),
+                      ...inHand.map((c) => _ChequeCard(
+                            cheque: c,
+                            onEdit: () => AddChequeModal.show(context, initialCheque: c),
+                            onDelete: () => _deleteCheque(context, ref, c),
+                          )),
                       const SizedBox(height: 14),
                     ],
                     if (given.isNotEmpty) ...[
@@ -305,7 +312,11 @@ class CashDetailScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      ...given.map((c) => _ChequeCard(cheque: c)),
+                      ...given.map((c) => _ChequeCard(
+                            cheque: c,
+                            onEdit: () => AddChequeModal.show(context, initialCheque: c),
+                            onDelete: () => _deleteCheque(context, ref, c),
+                          )),
                     ],
                   ],
                 );
@@ -315,6 +326,40 @@ class CashDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _deleteCheque(BuildContext context, WidgetRef ref, Cheque cheque) async {
+    if (cheque.id == null) return;
+    final confirmed = await ConfirmDeleteDialog.show(
+      context,
+      title: 'Çeki Sil',
+      message:
+          '${AppFormatters.formatCurrency(cheque.amount)} tutarındaki çeki silmek istediğinize emin misiniz?',
+    );
+    if (!confirmed) return;
+
+    try {
+      await ref.read(chequeRepositoryProvider).deleteCheque(cheque.id!);
+      if (cheque.imagePath != null && cheque.imagePath!.isNotEmpty) {
+        try {
+          await ref.read(supabaseStorageServiceProvider).deleteWorkPhoto(cheque.imagePath!);
+        } catch (_) {}
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Çek silindi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Silme hatası: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -412,8 +457,14 @@ class _MaliRow extends StatelessWidget {
 
 class _ChequeCard extends StatelessWidget {
   final Cheque cheque;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _ChequeCard({required this.cheque});
+  const _ChequeCard({
+    required this.cheque,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -425,13 +476,30 @@ class _ChequeCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       leftAccentColor: color,
+      onTap: onEdit,
       child: Row(
         children: [
-          IconSquircle(
-            color: color,
-            icon: Icons.receipt_long_outlined,
-            size: 42,
-          ),
+          if (cheque.hasImage)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                cheque.imageUrl!,
+                width: 42,
+                height: 42,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => IconSquircle(
+                  color: color,
+                  icon: Icons.receipt_long_outlined,
+                  size: 42,
+                ),
+              ),
+            )
+          else
+            IconSquircle(
+              color: color,
+              icon: Icons.receipt_long_outlined,
+              size: 42,
+            ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -469,10 +537,22 @@ class _ChequeCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           StatusPill(
             label: cheque.status.displayName,
             color: isInHand ? AdaptiveColors.success(context) : AdaptiveColors.subText(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            tooltip: 'Düzenle',
+            onPressed: onEdit,
+            visualDensity: VisualDensity.compact,
+          ),
+          IconButton(
+            icon: Icon(Icons.delete_outline, size: 18, color: AdaptiveColors.error(context)),
+            tooltip: 'Sil',
+            onPressed: onDelete,
+            visualDensity: VisualDensity.compact,
           ),
         ],
       ),

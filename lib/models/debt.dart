@@ -23,6 +23,8 @@ class DebtPerson {
   final String phone;
   final double balance;
   final String note;
+  final String? supplierId;
+  final String? supplierName;
   final DateTime createdAt;
 
   const DebtPerson({
@@ -31,8 +33,12 @@ class DebtPerson {
     this.phone = '',
     this.balance = 0,
     this.note = '',
+    this.supplierId,
+    this.supplierName,
     required this.createdAt,
   });
+
+  bool get isSupplier => supplierId != null && supplierId!.isNotEmpty;
 
   factory DebtPerson.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
@@ -48,6 +54,8 @@ class DebtPerson {
       phone: data['phone'] as String? ?? '',
       balance: (data['balance'] as num?)?.toDouble() ?? 0.0,
       note: data['note'] as String? ?? '',
+      supplierId: data['supplierId'] as String?,
+      supplierName: data['supplierName'] as String?,
       createdAt: parseDate(data['createdAt']),
     );
   }
@@ -58,6 +66,8 @@ class DebtPerson {
       'phone': phone,
       'balance': balance,
       'note': note,
+      'supplierId': supplierId,
+      'supplierName': supplierName,
       'createdAt': isNew ? FieldValue.serverTimestamp() : Timestamp.fromDate(createdAt),
     };
   }
@@ -68,6 +78,9 @@ class DebtPerson {
     String? phone,
     double? balance,
     String? note,
+    String? supplierId,
+    String? supplierName,
+    bool clearSupplier = false,
     DateTime? createdAt,
   }) {
     return DebtPerson(
@@ -76,6 +89,8 @@ class DebtPerson {
       phone: phone ?? this.phone,
       balance: balance ?? this.balance,
       note: note ?? this.note,
+      supplierId: clearSupplier ? null : (supplierId ?? this.supplierId),
+      supplierName: clearSupplier ? null : (supplierName ?? this.supplierName),
       createdAt: createdAt ?? this.createdAt,
     );
   }

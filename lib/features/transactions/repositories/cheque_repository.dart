@@ -23,6 +23,10 @@ class ChequeRepository {
     return docRef.id;
   }
 
+  Future<void> updateCheque(String chequeId, Cheque cheque) async {
+    await _collection.doc(chequeId).update(cheque.toFirestore(isNew: false));
+  }
+
   Future<void> markChequeGiven(String chequeId, String givenToName) async {
     await _collection.doc(chequeId).update({
       'status': ChequeStatus.given.value,

@@ -56,6 +56,8 @@ class DebtRepository {
     String phone = '',
     double? initialDebt,
     String note = '',
+    String? supplierId,
+    String? supplierName,
   }) async {
     final initialAmount = (initialDebt != null && initialDebt > 0) ? initialDebt : 0.0;
     final person = DebtPerson(
@@ -63,6 +65,8 @@ class DebtRepository {
       phone: phone,
       balance: initialAmount,
       note: note,
+      supplierId: supplierId,
+      supplierName: supplierName,
       createdAt: DateTime.now(),
     );
 
@@ -88,11 +92,15 @@ class DebtRepository {
     required String name,
     required String phone,
     required String note,
+    String? supplierId,
+    String? supplierName,
   }) async {
     await _peopleCollection.doc(id).update({
       'name': name,
       'phone': phone,
       'note': note,
+      'supplierId': supplierId,
+      'supplierName': supplierName,
     });
   }
 
